@@ -11,6 +11,14 @@
 |
 */
 
+use App\Tournaments;
+
 $router->get('/', function () use ($router) {
     return $router->app->version();
+});
+
+$router->post('/createTournament', 'CreateTournamentController@createTournament');
+
+$router->get('/tournament/{id}', function($id) {
+    return Tournaments::where('id', $id)->with('players', 'fixtures')->first();
 });
