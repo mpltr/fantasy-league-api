@@ -28,4 +28,12 @@ class Fixtures extends Model
      */
     protected $hidden = [
     ];
+
+    public function home_player() {
+        return $this->hasOne('App\Players', 'id', 'homePlayerId');
+    }
+
+    public function away_player() {
+        return $this->hasOne('App\Players', 'id', 'awayPlayerId');
+    }
 }

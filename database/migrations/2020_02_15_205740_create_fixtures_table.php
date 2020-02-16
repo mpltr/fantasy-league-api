@@ -17,9 +17,9 @@ class CreateFixturesTable extends Migration
             $table->bigIncrements('id');
             $table->string('tournamentId');
             $table->integer('homePlayerId');
-            $table->integer('homePlayerScore')->default(0);
+            $table->integer('homePlayerScore')->nullable();
             $table->integer('awayPlayerId');
-            $table->integer('awayPlayerScore')->default(0);
+            $table->integer('awayPlayerScore')->nullable();
             $table->text('group');
             $table->date('date');
             $table->timestamps();

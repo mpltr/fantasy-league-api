@@ -17,7 +17,6 @@ class CreateTournamentsTable extends Migration
             $table->bigIncrements('id');
             $table->string('uid', 16)->unique();
             $table->longtext('tournamentName');
-            $table->integer('numberOfPlayers');
             $table->integer('numberOfGroups');
             $table->integer('numberOfPvpFixtures');
             $table->integer('weeksBetweenFixtures');

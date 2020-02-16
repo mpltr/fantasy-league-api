@@ -15,7 +15,6 @@ class CreatePlayersTable extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('tournamentId');
             $table->longtext('name');
             $table->longtext('fplLink');
             $table->integer('userId');

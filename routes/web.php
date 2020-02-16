@@ -19,6 +19,4 @@ $router->get('/', function () use ($router) {
 
 $router->post('/createTournament', 'CreateTournamentController@createTournament');
 
-$router->get('/tournament/{id}', function($id) {
-    return Tournaments::where('id', $id)->with('players', 'fixtures')->first();
-});
+$router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');
