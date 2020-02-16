@@ -15,6 +15,7 @@ class CreateTournamentController extends Controller
     }
 
     public function createTournament(Request $request) {
+        return $request;
         $data = $request->input('data');
         if(!empty($data)) {
             // decode actual args are specify expected args
