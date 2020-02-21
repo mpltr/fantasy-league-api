@@ -13,7 +13,9 @@ class GetTournamentController extends Controller
     }
 
     public function getTournament($uid) {
+        
         $data = Tournaments::where('uid', $uid)->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')->first();
+        
         $fixtures = $this->sortFixturesIntoGroups($data['fixtures']);
 
         $players  = $this->extractPlayersFromFixtures($data['fixtures']);
@@ -23,9 +25,10 @@ class GetTournamentController extends Controller
         $tables = $this->assignPlayersToTables($fixtures);
 
         return [
+            'name'     => $data['tournamentName'],
             'fixtures' => $fixtures,
-            'players' => $playersWithStats,
-            'tables' => $tables
+            'players'  => $playersWithStats,
+            'tables'   => $tables
         ];
         
     }
