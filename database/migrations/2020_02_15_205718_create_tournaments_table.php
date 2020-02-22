@@ -20,7 +20,7 @@ class CreateTournamentsTable extends Migration
             $table->integer('numberOfGroups');
             $table->integer('numberOfPvpFixtures');
             $table->integer('weeksBetweenFixtures');
-            $table->integer('playersToProgress');
+            $table->integer('numberOfKnockoutRounds');
             $table->date('startDate');
             $table->timestamps();
         });

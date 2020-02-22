@@ -26,7 +26,7 @@ class CreateTournamentController extends Controller
                 'startDate',
                 'numberOfPvpFixtures',
                 'weeksBetweenFixtures',
-                'playersToProgress',
+                'numberOfKnockoutRounds',
                 'newPlayers'
             ];
             // verify and map args to vars
@@ -44,13 +44,13 @@ class CreateTournamentController extends Controller
             $tournamentUid = substr(md5(time()), 0, 16);
             $tournamentResult = Tournaments::create([
                 // TODO: better random uid generation solution
-                'uid'                  => $tournamentUid,
-                'tournamentName'       => $tournamentName,
-                'numberOfGroups'       => $numberOfGroups,
-                'numberOfPvpFixtures'  => $numberOfPvpFixtures,
-                'weeksBetweenFixtures' => $weeksBetweenFixtures,
-                'playersToProgress'    => $playersToProgress,
-                'startDate'            => $startDate,
+                'uid'                    => $tournamentUid,
+                'tournamentName'         => $tournamentName,
+                'numberOfGroups'         => $numberOfGroups,
+                'numberOfPvpFixtures'    => $numberOfPvpFixtures,
+                'weeksBetweenFixtures'   => $weeksBetweenFixtures,
+                'numberOfKnockoutRounds' => $numberOfKnockoutRounds,
+                'startDate'              => $startDate,
             ]);
             // TODO: verify tournament entry
             // get tournamentId

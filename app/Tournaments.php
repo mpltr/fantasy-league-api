@@ -19,7 +19,7 @@ class Tournaments extends Model
         'numberOfGroups',
         'numberOfPvpFixtures',
         'weeksBetweenFixtures',
-        'playersToProgress',
+        'numberOfKnockoutRounds',
         'startDate'
     ];
 
