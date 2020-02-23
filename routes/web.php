@@ -19,4 +19,6 @@ $router->get('/', function () use ($router) {
 
 $router->post('/createTournament', 'CreateTournamentController@createTournament');
 
+$router->post('/updateFixtures', 'UpdateFixturesController@updateFixtures');
+
 $router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');

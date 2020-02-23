@@ -36,6 +36,7 @@ class GetTournamentController extends Controller
     public function sortFixturesIntoGroups($fixtures) {
         foreach($fixtures as $fixture) {
             $groups[$fixture['group']][$fixture['date']][] = [
+                'id'              => $fixture['id'],
                 'homePlayerId'    => $fixture['homePlayerId'],
                 'homePlayerScore' => $fixture['homePlayerScore'],
                 'awayPlayerId'    => $fixture['awayPlayerId'],
