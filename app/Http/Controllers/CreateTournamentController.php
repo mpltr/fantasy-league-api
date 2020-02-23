@@ -41,16 +41,27 @@ class CreateTournamentController extends Controller
            
             // TOURNAMENT
             // create new tournament entry
+            $numberOfKnockoutFixturesMap = [
+                '1' => 1,
+                '2' => 2,
+                '3' => 4,
+                '4' => 8
+            ];
+            $numberOfKnockoutFixtures     = $numberOfKnockoutFixturesMap[$numberOfKnockoutRounds];
+            $numberOfTeamsToProgress      = $numberOfKnockoutFixtures * 2;
+            $numberOfGroupTeamsToProgress = $numberOfTeamsToProgress / $numberOfGroups;
+
             $tournamentUid = substr(md5(time()), 0, 16);
             $tournamentResult = Tournaments::create([
                 // TODO: better random uid generation solution
-                'uid'                    => $tournamentUid,
-                'tournamentName'         => $tournamentName,
-                'numberOfGroups'         => $numberOfGroups,
-                'numberOfPvpFixtures'    => $numberOfPvpFixtures,
-                'weeksBetweenFixtures'   => $weeksBetweenFixtures,
-                'numberOfKnockoutRounds' => $numberOfKnockoutRounds,
-                'startDate'              => $startDate,
+                'uid'                          => $tournamentUid,
+                'tournamentName'               => $tournamentName,
+                'numberOfGroups'               => $numberOfGroups,
+                'numberOfPvpFixtures'          => $numberOfPvpFixtures,
+                'weeksBetweenFixtures'         => $weeksBetweenFixtures,
+                'numberOfKnockoutRounds'       => $numberOfKnockoutRounds,
+                'numberOfGroupTeamsToProgress' => $numberOfGroupTeamsToProgress,
+                'startDate'                    => $startDate
             ]);
             // TODO: verify tournament entry
             // get tournamentId
@@ -142,7 +153,6 @@ class CreateTournamentController extends Controller
                 $player1 = $players[$k];
                 $player2 = $players[count($players) - 1 - $k];
                 if($player2['name'] !== "dummy" && $player1['name'] !== "dummy"){
-                    // $weeksFixtures[] = $player1 . " vs " . $player2;  
                     $fixtures[] = [
                         'tournamentId' => $tournamentId,
                         'homePlayerId' => $player1['id'],
@@ -150,6 +160,8 @@ class CreateTournamentController extends Controller
                         'group'        => $groupLetter,
                         'date'         => $fixtureDate
                     ];
+                    // used for knockouts
+                    $this->dateOfLastFixture = $fixtureDate;
                 }
             }
             $players[] = array_splice($players, 1, 1)[0];
