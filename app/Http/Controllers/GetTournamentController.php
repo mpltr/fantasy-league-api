@@ -33,4 +33,10 @@ class GetTournamentController extends Controller
             'tables'                       => $tables
         ];
     }
+
+    public function getTournaments() {
+        $data = Tournaments::all('uid');
+
+        return $data;
+    }
 }

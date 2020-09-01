@@ -45,7 +45,9 @@ class CreateTournamentController extends Controller
                 '1' => 1,
                 '2' => 2,
                 '3' => 4,
-                '4' => 8
+                '4' => 8,
+                '5' => 16,
+                '6' => 32
             ];
             $numberOfKnockoutFixtures     = $numberOfKnockoutFixturesMap[$numberOfKnockoutRounds];
             $numberOfTeamsToProgress      = $numberOfKnockoutFixtures * 2;
