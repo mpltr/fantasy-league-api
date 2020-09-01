@@ -9,6 +9,7 @@ $database = substr($url["path"], 1);
 
 return [
     'default' => 'pgsql',
+    'migrations' => 'migrations',
     'connections' => [
         'pgsql' => [
             'driver' => 'pgsql',
@@ -18,7 +19,6 @@ return [
             'password' => $password,
             'charset'   => 'utf8',
             'prefix'  => '',
-            'schema' => 'public',
-            'migrations' => 'migrations'        ]
+            'schema' => 'public'
     ]
 ];
