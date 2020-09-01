@@ -17,10 +17,13 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->post('/createTournament', 'CreateTournamentController@createTournament');
+$router->group(['middleware' => 'cors'], function () use ($router) {
+    $router->post('/createTournament', 'CreateTournamentController@createTournament');
+    
+    $router->post('/updateFixtures', 'UpdateFixturesController@updateFixtures');
+    
+    $router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');
+    
+    $router->get('/get-tournaments', 'GetTournamentController@getTournaments');
+}
 
-$router->post('/updateFixtures', 'UpdateFixturesController@updateFixtures');
-
-$router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');
-
-$router->get('/get-tournaments', 'GetTournamentController@getTournaments');
