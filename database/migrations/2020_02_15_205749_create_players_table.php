@@ -13,11 +13,11 @@ class CreatePlayersTable extends Migration
      */
     public function up()
     {
-        Schema::create('players', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->longtext('name');
-            $table->longtext('fplLink');
-            $table->integer('userId');
+        Schema::create("players", function (Blueprint $table) {
+            $table->bigIncrements("id");
+            $table->longtext("name");
+            $table->longtext("fplLink");
+            $table->integer("userId");
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ class CreatePlayersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('players');
+        Schema::dropIfExists("players");
     }
 }

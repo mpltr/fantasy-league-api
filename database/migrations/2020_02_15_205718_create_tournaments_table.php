@@ -13,16 +13,16 @@ class CreateTournamentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('tournaments', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('uid', 16)->unique();
-            $table->longtext('tournamentName');
-            $table->integer('numberOfGroups');
-            $table->integer('numberOfPvpFixtures');
-            $table->integer('weeksBetweenFixtures');
-            $table->integer('numberOfKnockoutRounds');
-            $table->integer('numberOfGroupTeamsToProgress');
-            $table->date('startDate');
+        Schema::create("tournaments", function (Blueprint $table) {
+            $table->bigIncrements("id");
+            $table->string("uid", 16)->unique();
+            $table->longtext("tournamentName");
+            $table->integer("numberOfGroups");
+            $table->integer("numberOfPvpFixtures");
+            $table->integer("weeksBetweenFixtures");
+            $table->integer("numberOfKnockoutRounds");
+            $table->integer("numberOfGroupTeamsToProgress");
+            $table->date("startDate");
             $table->timestamps();
         });
     }
@@ -34,6 +34,6 @@ class CreateTournamentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tournaments');
+        Schema::dropIfExists("tournaments");
     }
 }

@@ -13,15 +13,15 @@ class CreateFixturesTable extends Migration
      */
     public function up()
     {
-        Schema::create('fixtures', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('tournamentId');
-            $table->integer('homePlayerId');
-            $table->integer('homePlayerScore')->nullable();
-            $table->integer('awayPlayerId');
-            $table->integer('awayPlayerScore')->nullable();
-            $table->text('group');
-            $table->date('date');
+        Schema::create("fixtures", function (Blueprint $table) {
+            $table->bigIncrements("id");
+            $table->string("tournamentId");
+            $table->integer("homePlayerId");
+            $table->integer("homePlayerScore")->nullable();
+            $table->integer("awayPlayerId");
+            $table->integer("awayPlayerScore")->nullable();
+            $table->text("group");
+            $table->date("date");
             $table->timestamps();
         });
     }
@@ -33,6 +33,6 @@ class CreateFixturesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('fixtures');
+        Schema::dropIfExists("fixtures");
     }
 }
