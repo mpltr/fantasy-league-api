@@ -25,5 +25,4 @@ $router->group(['middleware' => 'cors'], function () use ($router) {
     $router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');
     
     $router->get('/get-tournaments', 'GetTournamentController@getTournaments');
-}
-
+});
