@@ -1,6 +1,6 @@
 <?php
 
-$DATABASE_URL=parse_url(‘DATABASE_URL’);
+$DATABASE_URL=parse_url("postgres://wcrbaarmpseixj:1bff2c9412ee9476bf5bdd3a6f234b06001a5ad2d4f494e738009f3315dc9492@ec2-54-236-169-55.compute-1.amazonaws.com:5432/db0q936stg63at");
 return [
     'default' => 'pgsql',
     'connections' => [
