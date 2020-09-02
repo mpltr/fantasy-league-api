@@ -15,7 +15,7 @@ class CreateFixturesTable extends Migration
     {
         Schema::create("fixtures", function (Blueprint $table) {
             $table->bigIncrements("id");
-            $table->string("tournamentId");
+            $table->integer("tournamentId");
             $table->integer("homePlayerId");
             $table->integer("homePlayerScore")->nullable();
             $table->integer("awayPlayerId");

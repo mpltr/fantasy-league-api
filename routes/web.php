@@ -24,3 +24,11 @@ $router->post('/updateFixtures', 'UpdateFixturesController@updateFixtures');
 $router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');
 
 $router->get('/get-tournaments', 'GetTournamentController@getTournaments');
+
+$router->get('/version', function() {
+    return response()->json([
+        'stuff' => phpinfo()
+    ]);
+});
+
+

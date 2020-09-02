@@ -16,6 +16,7 @@ class CreateTournamentController extends Controller
 
     public function createTournament(Request $request) {
         $data = $request->input('data');
+        
         if(!empty($data)) {
             // decode actual args are specify expected args
             $args = json_decode($data, true);
