@@ -15,7 +15,7 @@ class CreateTournamentsTable extends Migration
     {
         Schema::create("tournaments", function (Blueprint $table) {
             $table->bigIncrements("id");
-            $table->string("uid", 16)->unique();
+            $table->string("uid", 30)->unique();
             $table->longtext("tournamentName");
             $table->integer("numberOfGroups");
             $table->integer("numberOfPvpFixtures");

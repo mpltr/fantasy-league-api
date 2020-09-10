@@ -15,6 +15,7 @@ class Players extends Model
         'tournamentId',
         'name',
         'fplLink',
+        'seed',
         'userId'
     ];
 }

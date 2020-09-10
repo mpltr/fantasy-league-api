@@ -16,7 +16,7 @@ class CreateTournamentController extends Controller
 
     public function createTournament(Request $request) {
         $data = $request->input('data');
-        
+
         if(!empty($data)) {
             // decode actual args are specify expected args
             $args = json_decode($data, true);
@@ -54,7 +54,7 @@ class CreateTournamentController extends Controller
             $numberOfTeamsToProgress      = $numberOfKnockoutFixtures * 2;
             $numberOfGroupTeamsToProgress = $numberOfTeamsToProgress / $numberOfGroups;
 
-            $tournamentUid = substr(md5(time()), 0, 16);
+            $tournamentUid = $this->slugify($tournamentName);
             $tournamentResult = Tournaments::create([
                 // TODO: better random uid generation solution
                 'uid'                          => $tournamentUid,
@@ -66,6 +66,7 @@ class CreateTournamentController extends Controller
                 'numberOfGroupTeamsToProgress' => $numberOfGroupTeamsToProgress,
                 'startDate'                    => $startDate
             ]);
+
             // TODO: verify tournament entry
             // get tournamentId
             $tournamentId = $tournamentResult['id'];
@@ -78,7 +79,8 @@ class CreateTournamentController extends Controller
                 $playerEntries[] = Players::create([
                     'name'         => $player['name'],
                     'fplLink'      => $player['fplLink'] ?? 'default',
-                    'userId'       => 1
+                    'seed'         => $player['seed'] ?? null,
+                    'userId'       => 1,
                 ]);
             }
 
@@ -90,6 +92,7 @@ class CreateTournamentController extends Controller
                                               $weeksBetweenFixtures, 
                                               $numberOfPvpFixtures, 
                                               $tournamentId);
+                                              
             foreach($fixtures as $fixture) {
                 // create new fixture row
                 Fixtures::create($fixture);
@@ -108,11 +111,26 @@ class CreateTournamentController extends Controller
                                     $weeksBetweenFixtures, 
                                     $numberOfPvpFixtures,
                                     $tournamentId) {
+        // TODO: allow no seeding. New algorithm only allows seeded players
 
-        // seperate players into groups
+
+        // randomise the players
         shuffle($players);
-        $maxPlayersPerGroup = ceil(count($players) / $numberOfGroups) ;
-        $groups = array_chunk($players, $maxPlayersPerGroup);
+       
+        // split into seedings
+        $seeded = [];
+        foreach($players as $player) $seeded[$player['seed']][] = $player; 
+
+        // seperate into groups
+        $groups = [];
+        $group_index = 0;
+        foreach($seeded as $seed_group) {
+            foreach($seed_group as $player) {
+                $groups[$group_index][] = $player;
+                $group_index = $group_index === ($numberOfGroups - 1) ? 0 : $group_index + 1;
+            }
+        }
+
         // get and return fixtures for groups
         $fixtures = [];
         $index = 0;

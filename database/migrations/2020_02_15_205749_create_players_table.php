@@ -17,6 +17,7 @@ class CreatePlayersTable extends Migration
             $table->bigIncrements("id");
             $table->longtext("name");
             $table->longtext("fplLink");
+            $table->integer('seed')->nullable();
             $table->integer("userId");
             $table->timestamps();
         });
