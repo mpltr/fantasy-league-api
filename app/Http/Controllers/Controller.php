@@ -73,16 +73,19 @@ class Controller extends BaseController
     public function assignPlayersToTables($fixtures) {
         foreach($fixtures as $group => $fixturesForDate) {
             if(in_array($group, ['Last 16', 'Quarters', 'Semis', 'Final'])) continue;
+            // get all player ids for group fixtures
             foreach($fixturesForDate as $date => $fixtures){
                 foreach($fixtures as $fixture){
-                    $tables[$group][] = $fixture['homePlayerId'];
-                    $tables[$group][] = $fixture['awayPlayerId'];
+                    $home_player_id = $fixture['homePlayerId'];
+                    $away_player_id = $fixture['awayPlayerId'];
+                    // ensure group index exists
+                    if(empty($tables[$group])) $tables[$group] = [];
+                    // only put player IDS in array if unique
+                    if(!in_array($home_player_id, $tables[$group]))  $tables[$group][] = $fixture['homePlayerId'];
+                    if(!in_array($away_player_id, $tables[$group]))  $tables[$group][] = $fixture['awayPlayerId'];
                 }
             }
         };
-        foreach($tables as $index => $table) {
-            $tables[$index] = array_unique($table);
-        }
         return $tables;
     }
 
