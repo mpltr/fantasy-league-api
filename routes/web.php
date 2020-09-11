@@ -17,13 +17,16 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->post('/createTournament', 'CreateTournamentController@createTournament');
-
-$router->post('/updateFixtures', 'UpdateFixturesController@updateFixtures');
-
-$router->get('/get-tournament/{id}', 'GetTournamentController@getTournament');
-
-$router->get('/get-tournaments', 'GetTournamentController@getTournaments');
+// tournament
+$router->post('/tournament', 'TournamentController@store');
+$router->get('/tournament', 'TournamentController@index');
+$router->get('/tournament/{uid}', 'TournamentController@show');
+// fixture
+$router->post('/fixtures', 'FixturesController@store');
+// message
+$router->get('/message', 'MessageController@index');
+$router->post('/message', 'MessageController@store');
+$router->put('/message/{id}', 'MessageController@update');
 
 $router->get('/version', function() {
     return response()->json([

@@ -6,14 +6,14 @@ use Illuminate\Http\Request;
 use App\Fixtures;
 use App\Tournaments;
 
-class UpdateFixturesController extends Controller
+class FixturesController extends Controller
 {
     public function __construct()
     {
         //
     }
 
-    public function updateFixtures(Request $request) {
+    public function store(Request $request) {
         $data = $request->input('data');
         // return $data;
         if(!empty($data)) {
@@ -40,13 +40,13 @@ class UpdateFixturesController extends Controller
                 }
             }
             $success = count($fixtureUpdates) == $totalFixtures;
-            if($success && $fixturesWithScores == $totalFixtures) {
-                // generate knockouts
-                $knockoutFixtures = $this->generateKnockoutFixtures($id);
-                foreach($knockoutFixtures as $knockoutFixture) {
-                    Fixtures::create($knockoutFixture);
-                }
-            }
+            // if($success && $fixturesWithScores == $totalFixtures) {
+            //     // generate knockouts
+            //     $knockoutFixtures = $this->generateKnockoutFixtures($id);
+            //     foreach($knockoutFixtures as $knockoutFixture) {
+            //         Fixtures::create($knockoutFixture);
+            //     }
+            // }
             if($success) {
                 return response([
                     'status' => true, 

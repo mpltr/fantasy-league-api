@@ -40,4 +40,8 @@ class Tournaments extends Model
         return $this->hasMany('App\Fixtures', 'tournamentId', 'id');
     }
 
+    public function messages() {
+        return $this->hasMany('App\Messages', 'tournamentId', 'id');
+    }
+
 }

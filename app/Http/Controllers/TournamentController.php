@@ -7,14 +7,14 @@ use App\Tournaments;
 use App\Players;
 use App\Fixtures;
 
-class CreateTournamentController extends Controller
+class TournamentController extends Controller
 {
     public function __construct()
     {
         //
     }
 
-    public function createTournament(Request $request) {
+    public function store(Request $request) {
         $data = $request->input('data');
 
         if(!empty($data)) {
@@ -105,6 +105,36 @@ class CreateTournamentController extends Controller
         return $this->error("No Data Provided", 422);
     }
 
+    public function show($uid) {
+        
+        $data = Tournaments::where('uid', $uid)->with('fixtures', 'fixtures.home_player', 'fixtures.away_player', 'messages')->first();
+        
+        $fixtures = $this->sortFixturesIntoGroups($data['fixtures']);
+
+        $players  = $this->extractPlayersFromFixtures($data['fixtures']);
+
+        $playersWithStats = $this->calculaterPlayerStats($players, $data['fixtures']);
+        
+        $tables = $this->assignPlayersToTables($fixtures);
+
+        return [
+            'id'                           => $data['id'],
+            'name'                         => $data['tournamentName'],
+            'numberOfGroupTeamsToProgress' => $data['numberOfGroupTeamsToProgress'],
+            'messages'                     => $data['messages'],
+            'fixtures'                     => $fixtures,
+            'players'                      => $playersWithStats,
+            'tables'                       => $tables
+        ];
+    }
+
+    public function index() {
+        $data = Tournaments::all('uid');
+
+        return $data;
+    }
+
+    // HELPERS //
     private function getFixtureRows($players, 
                                     $numberOfGroups, 
                                     $startDate, 
