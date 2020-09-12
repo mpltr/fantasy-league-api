@@ -23,7 +23,7 @@ class Controller extends BaseController
                 'homePlayerScore' => $fixture['homePlayerScore'],
                 'awayPlayerId'    => $fixture['awayPlayerId'],
                 'awayPlayerScore' => $fixture['awayPlayerScore'],
-                'temp' => $homePlayerName
+                'homePlayerName'  => $homePlayerName
             ];
             $groups[$fixture['group']][$fixture['date']][] = $groupFixture;
         };
@@ -31,7 +31,7 @@ class Controller extends BaseController
         foreach($groups as $group => $dates) {
             foreach($dates as $date => $fixtures) {
                 usort($fixtures, function($a, $b) {
-                    return $a['temp'][0] > $b['temp'][0] ? 1 : -1;
+                    return $a['homePlayerName'][0] > $b['homePlayerName'][0] ? 1 : -1;
                 });
                 $groups[$group][$date] = $fixtures;
             }
