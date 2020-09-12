@@ -13,16 +13,30 @@ class Controller extends BaseController
         ], $response_code);
     }
 
-    public function sortFixturesIntoGroups($fixtures) {
+    public function sortFixturesIntoGroups($fixtures, $players) {
+        // sort the fixtures into groups and date 
         foreach($fixtures as $fixture) {
-            $groups[$fixture['group']][$fixture['date']][] = [
+            $homePlayerName = $players[$fixture['homePlayerId']]['name'];
+            $groupFixture = [
                 'id'              => $fixture['id'],
                 'homePlayerId'    => $fixture['homePlayerId'],
                 'homePlayerScore' => $fixture['homePlayerScore'],
                 'awayPlayerId'    => $fixture['awayPlayerId'],
-                'awayPlayerScore' => $fixture['awayPlayerScore']
+                'awayPlayerScore' => $fixture['awayPlayerScore'],
+                'homePlayerName'  => $homePlayerName
             ];
+            $groups[$fixture['group']][$fixture['date']][] = $groupFixture;
         };
+        // alphabetise the fixtures in date arrays
+        foreach($groups as $group => $dates) {
+            foreach($dates as $date => $fixtures) {
+                usort($fixtures, function($a, $b) {
+                    return $a['homePlayerName'][0] > $b['homePlayerName'][0] ? 1 : -1;
+                });
+                $groups[$group][$date] = $fixtures;
+            }
+        }
+
         return $groups;
     }
 
