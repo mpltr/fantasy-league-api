@@ -32,10 +32,6 @@ class Tournaments extends Model
     protected $hidden = [
     ];
 
-    public function players() {
-        return $this->hasMany('App\Players', 'tournamentId', 'id');
-    }
-
     public function fixtures() {
         return $this->hasMany('App\Fixtures', 'tournamentId', 'id');
     }

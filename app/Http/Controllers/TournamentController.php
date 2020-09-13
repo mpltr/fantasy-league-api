@@ -129,7 +129,7 @@ class TournamentController extends Controller
     }
 
     public function index() {
-        $data = Tournaments::all('uid', 'tournamentName');
+        $data = Tournaments::all();
 
         return $data;
     }
