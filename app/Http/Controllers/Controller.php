@@ -61,6 +61,8 @@ class Controller extends BaseController
                 $result = $homeScore - $awayScore;
                 $homeResult = $this->getResultLetter($result);
                 $awayResult = $this->getResultLetter($result, false);
+                $form[$home][] = $homeResult;
+                $form[$away][] = $awayResult;
                 $players[$home]['win']      += $result > 0 ? 1 : 0;
                 $players[$home]['draw']     += $result == 0 ? 1 : 0;
                 $players[$home]['loss']     += $result < 0 ? 1 : 0;
@@ -92,7 +94,6 @@ class Controller extends BaseController
     }
 
     public function getResultLetter($result, $home = true) {
-        $resultLetter = "";
         if($result < 0) {
             $resultLetter = $home ? 0 : 3;
         } elseif ($result > 0 ){
