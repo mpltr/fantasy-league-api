@@ -51,6 +51,7 @@ class Controller extends BaseController
     }
 
     public function calculaterPlayerStats($players, $fixtures) {
+        $form = [];
         foreach($fixtures as $fixture) {
             $home = $fixture['homePlayerId'];
             $away = $fixture['awayPlayerId'];
@@ -58,11 +59,13 @@ class Controller extends BaseController
             $awayScore =  $fixture['awayPlayerScore'];
             if($homeScore && $awayScore){
                 $result = $homeScore - $awayScore;
+                $homeResult = $this->getResultLetter($result);
+                $awayResult = $this->getResultLetter($result, false);
                 $players[$home]['win']      += $result > 0 ? 1 : 0;
                 $players[$home]['draw']     += $result == 0 ? 1 : 0;
                 $players[$home]['loss']     += $result < 0 ? 1 : 0;
                 $players[$home]['for']      += $homeScore;
-                $players[$home]['against']  += $awayScore;
+                $players[$home]['against']  += $awayScore;    
                 $players[$away]['win']      += $result < 0 ? 1 : 0;
                 $players[$away]['draw']     += $result == 0 ? 1 : 0;
                 $players[$away]['loss']     += $result > 0 ? 1 : 0;
@@ -71,7 +74,7 @@ class Controller extends BaseController
             }
         }
         // calculate ew points and played
-        return array_map(function($player) {
+        return array_map(function($player) use ($form) {
             $win = $player['win'];
             $loss = $player['loss'];
             $draw = $player['draw'];
@@ -80,8 +83,24 @@ class Controller extends BaseController
                 $player['points'] = $win * 3 + $draw;
                 $player['gd']     = $player['for'] - $player['against'];
             }
+            $player['form'] = !empty($form[$player['id']]) ? array_slice($form[$player['id']], -4) : [];
+            $player['formPoints'] = array_reduce($player['form'], function($carry, $item) {
+                return $carry + $item;
+            }, 0);
             return $player;
         }, $players);
+    }
+
+    public function getResultLetter($result, $home = true) {
+        $resultLetter = "";
+        if($result < 0) {
+            $resultLetter = $home ? 0 : 3;
+        } elseif ($result > 0 ){
+            $resultLetter = $home ? 3 : 0;
+        } else {
+            $resultLetter = 1;
+        }
+        return $resultLetter;
     }
 
     public function assignPlayersToTables($fixtures) {
