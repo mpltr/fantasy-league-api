@@ -27,6 +27,9 @@ $router->post('/fixtures', 'FixturesController@store');
 $router->get('/message', 'MessageController@index');
 $router->post('/message', 'MessageController@store');
 $router->put('/message/{id}', 'MessageController@update');
+// player
+$router->get('/player', 'PlayerController@index');
+$router->put('/player/{id}', 'PlayerController@update');
 
 $router->get('/version', function() {
     return response()->json([
