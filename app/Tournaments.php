@@ -33,7 +33,7 @@ class Tournaments extends Model
     ];
 
     public function fixtures() {
-        return $this->hasMany('App\Fixtures', 'tournamentId', 'id');
+        return $this->hasMany('App\Fixtures', 'tournamentId', 'id')->orderBy('date');
     }
 
     public function messages() {
