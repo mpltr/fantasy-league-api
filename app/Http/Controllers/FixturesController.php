@@ -40,13 +40,27 @@ class FixturesController extends Controller
                 }
             }
             $success = count($fixtureUpdates) == $totalFixtures;
-            // if($success && $fixturesWithScores == $totalFixtures) {
-            //     // generate knockouts
+
+            // generate next fixtures if all are complete
+            if($success && $fixturesWithScores == $totalFixtures) {
+                $tournament = Tournaments::select('id', 'stage', 'numberOdGroupTeamsToProgress')->where('id', $id)->first();
+                $current_stage = $tournament['stage'] ?? null;
+
+                if($current_stage) {
+
+                    $stage_map = [
+                        // 'group' => 
+                    ];
+
+                }
+                return $current_stage;
+            // //     // generate knockouts
             //     $knockoutFixtures = $this->generateKnockoutFixtures($id);
+            //     return $knockoutFixtures;
             //     foreach($knockoutFixtures as $knockoutFixture) {
             //         Fixtures::create($knockoutFixture);
             //     }
-            // }
+            }
             if($success) {
                 return response([
                     'status' => true, 
@@ -60,74 +74,74 @@ class FixturesController extends Controller
         return $this->error("No Data Provided", 422);
     }
 
-    private function generateKnockoutFixtures($id) {
-        $data = Tournaments::where('id', $id)
-                    ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')
-                    ->first();
+    // private function generateKnockoutFixtures($id) {
+    //     $data = Tournaments::where('id', $id)
+    //                 ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')
+    //                 ->first();
                 
-        $fixtures = $this->sortFixturesIntoGroups($data['fixtures']);
+    //     $fixtures = $this->sortFixturesIntoGroups($data['fixtures']);
 
-        $players  = $this->extractPlayersFromFixtures($data['fixtures']);
+    //     $players  = $this->extractPlayersFromFixtures($data['fixtures']);
 
-        $playersWithStats = $this->calculaterPlayerStats($players, $data['fixtures']);
+    //     $playersWithStats = $this->calculaterPlayerStats($players, $data['fixtures']);
         
-        $tables = $this->assignPlayersToTables($fixtures);
+    //     $tables = $this->assignPlayersToTables($fixtures);
 
-        // TODO: make dynamic for different tournaments
-        $topPlayers = [];
-        $originalFixtureDates = [];
-        foreach($data['fixtures'] as $fixture) {
-            // return $fixture;
-            $originalFixtureDates[] = $fixture['date'];
-        }
-        sort($originalFixtureDates);
-        $lastFixtureDate = end($originalFixtureDates);
-        $weeksBetweenFixtures = $data['weeksBetweenFixtures'];
-        $date = date('Y-m-d', strtotime("$lastFixtureDate +$weeksBetweenFixtures weeks"));
+    //     // TODO: make dynamic for different tournaments
+    //     $topPlayers = [];
+    //     $originalFixtureDates = [];
+    //     foreach($data['fixtures'] as $fixture) {
+    //         // return $fixture;
+    //         $originalFixtureDates[] = $fixture['date'];
+    //     }
+    //     sort($originalFixtureDates);
+    //     $lastFixtureDate = end($originalFixtureDates);
+    //     $weeksBetweenFixtures = $data['weeksBetweenFixtures'];
+    //     $date = date('Y-m-d', strtotime("$lastFixtureDate +$weeksBetweenFixtures weeks"));
 
-        foreach($tables as $groupLetter => $playerIds) {
-            foreach($playerIds as $playerId) {
-                $topPlayers[$groupLetter][] = $playersWithStats[$playerId];
-            }
-            usort($topPlayers[$groupLetter], function($a, $b) {
-                $aPoints = $a['points'];
-                $bPoints = $b['points'];
-                $aGd     = $a['gd'];
-                $bGd     = $b['gd'];
-                if($aPoints === $bPoints) return $bGd - $aGd;
-                return $bPoints - $aPoints;
-            });
-        }
+    //     foreach($tables as $groupLetter => $playerIds) {
+    //         foreach($playerIds as $playerId) {
+    //             $topPlayers[$groupLetter][] = $playersWithStats[$playerId];
+    //         }
+    //         usort($topPlayers[$groupLetter], function($a, $b) {
+    //             $aPoints = $a['points'];
+    //             $bPoints = $b['points'];
+    //             $aGd     = $a['gd'];
+    //             $bGd     = $b['gd'];
+    //             if($aPoints === $bPoints) return $bGd - $aGd;
+    //             return $bPoints - $aPoints;
+    //         });
+    //     }
 
-        $knockoutFixtures = [];
+    //     $knockoutFixtures = [];
        
-        foreach($topPlayers as $groupLetter => $players){
-            if($groupLetter === 'C') break;
-            switch ($groupLetter) {
-                case 'A':
-                    $oppositionGroupLetter = 'C';
-                    break;
-                default:
-                    $oppositionGroupLetter = 'D';
-                    break;
-            }
-            $indexMatchUps = [
-                [0,3],
-                [1,2],
-                [2,1],
-                [3,0]
-            ];
-            foreach($indexMatchUps as $matchUp) {
-                $knockoutFixtures[] = [
-                    'tournamentId' => $id, 
-                    'homePlayerId' => $topPlayers[$groupLetter][$matchUp[0]]['id'],
-                    'awayPlayerId' => $topPlayers[$oppositionGroupLetter][$matchUp[1]]['id'],
-                    'group'        => 'Last 16',
-                    'date'         => $date
-                ];
-            }
-        }
+    //     foreach($topPlayers as $groupLetter => $players){
+    //         if($groupLetter === 'C') break;
+    //         switch ($groupLetter) {
+    //             case 'A':
+    //                 $oppositionGroupLetter = 'C';
+    //                 break;
+    //             default:
+    //                 $oppositionGroupLetter = 'D';
+    //                 break;
+    //         }
+    //         $indexMatchUps = [
+    //             [0,3],
+    //             [1,2],
+    //             [2,1],
+    //             [3,0]
+    //         ];
+    //         foreach($indexMatchUps as $matchUp) {
+    //             $knockoutFixtures[] = [
+    //                 'tournamentId' => $id, 
+    //                 'homePlayerId' => $topPlayers[$groupLetter][$matchUp[0]]['id'],
+    //                 'awayPlayerId' => $topPlayers[$oppositionGroupLetter][$matchUp[1]]['id'],
+    //                 'group'        => 'Last 16',
+    //                 'date'         => $date
+    //             ];
+    //         }
+    //     }
 
-        return $knockoutFixtures;
-    }
+    //     return $knockoutFixtures;
+    // }
 }
