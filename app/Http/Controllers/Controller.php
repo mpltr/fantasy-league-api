@@ -106,7 +106,7 @@ class Controller extends BaseController
 
     public function assignPlayersToTables($fixtures) {
         foreach($fixtures as $group => $fixturesForDate) {
-            if(in_array($group, ['Last 16', 'Quarters', 'Semis', 'Final'])) continue;
+            if(in_array($group, ['last32', 'Last 16', 'Quarters', 'Semis', 'Final'])) continue;
             // get all player ids for group fixtures
             foreach($fixturesForDate as $date => $fixtures){
                 foreach($fixtures as $fixture){

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddStageToTournament extends Migration
+class AddStageAndNumberToFixture extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddStageToTournament extends Migration
      */
     public function up()
     {
-        Schema::table('tournaments', function (Blueprint $table) {
-            $table->text('stage')->default('Group');
+        Schema::table('fixtures', function (Blueprint $table) {
+            $table->integer('number')->default(0);
         });
     }
 
@@ -25,8 +25,8 @@ class AddStageToTournament extends Migration
      */
     public function down()
     {
-        Schema::table('tournaments', function (Blueprint $table) {
-            $table->dropColumn('stage');
+        Schema::table('fixtures', function (Blueprint $table) {
+            $table->dropColumn('number');
         });
     }
 }

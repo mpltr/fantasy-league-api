@@ -43,23 +43,33 @@ class FixturesController extends Controller
 
             // generate next fixtures if all are complete
             if($success && $fixturesWithScores == $totalFixtures) {
-                $tournament = Tournaments::select('id', 'stage', 'numberOdGroupTeamsToProgress')->where('id', $id)->first();
+                $tournament = Tournaments::where('id', $id)
+                    ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')
+                    ->first();
                 $current_stage = $tournament['stage'] ?? null;
 
                 if($current_stage) {
+                    if($current_stage === 'Group') {
+                        $fixtures = $this->createFixturesForFirstKnockoutRound($tournament);
+                    }
+                    foreach($fixtures as $fixture) {
+                        // create new fixture rows
+                        Fixtures::create($fixture);
+                    }
+                    // set the tournaments next stage
+                    Tournaments::where('id', $id)->update([
+                        'stage' => 'Last 32'
+                    ]);
 
-                    $stage_map = [
-                        // 'group' => 
-                    ];
-
+                    if($success) {
+                        return response([
+                            'status' => true, 
+                            'message' => 'Fixtures Updated and New Fixtures Generated',
+                        ], 200);
+                    } else {
+                        return $this->error("One or more fixures failed to update", 422);
+                    }
                 }
-                return $current_stage;
-            // //     // generate knockouts
-            //     $knockoutFixtures = $this->generateKnockoutFixtures($id);
-            //     return $knockoutFixtures;
-            //     foreach($knockoutFixtures as $knockoutFixture) {
-            //         Fixtures::create($knockoutFixture);
-            //     }
             }
             if($success) {
                 return response([
@@ -74,74 +84,95 @@ class FixturesController extends Controller
         return $this->error("No Data Provided", 422);
     }
 
-    // private function generateKnockoutFixtures($id) {
-    //     $data = Tournaments::where('id', $id)
-    //                 ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')
-    //                 ->first();
-                
-    //     $fixtures = $this->sortFixturesIntoGroups($data['fixtures']);
+    public function createFixturesForFirstKnockoutRound($tournament) {
+        // get the qualified players seperated into their groups
+        $qualifiedPlayers = $this->getGroupQualifiers($tournament);
+        $fixtureDate = $this->getNextFixtureDate($tournament['fixtures'], $tournament['weeksBetweenFixtures']);
 
-    //     $players  = $this->extractPlayersFromFixtures($data['fixtures']);
+        $fixtures = [];
 
-    //     $playersWithStats = $this->calculaterPlayerStats($players, $data['fixtures']);
+        $tournamentId = $tournament['id'];
         
-    //     $tables = $this->assignPlayersToTables($fixtures);
+        // 32 teams
+        $fixtureNumber = 0; // used to order the fixtures for KO table
+        for($i = 0; $i < 4; $i++) {
+            $fixtures[] = [
+                'tournamentId' => $tournamentId,
+                'homePlayerId' => $qualifiedPlayers[0][0],
+                'awayPlayerId' => $qualifiedPlayers[3][7],
+                'group'        => 'last32',
+                'number'       => $fixtureNumber, 
+                'date'         => $fixtureDate
+            ];
+            $fixtures[] = [
+                'tournamentId' => $tournamentId,
+                'homePlayerId' => $qualifiedPlayers[1][3],
+                'awayPlayerId' => $qualifiedPlayers[2][4],
+                'group'        => 'last32',
+                'number'       => $fixtureNumber + 1,
+                'date'         => $fixtureDate
+            ];  
+            $fixtures[] = [
+                'tournamentId' => $tournamentId,
+                'homePlayerId' => $qualifiedPlayers[0][2],
+                'awayPlayerId' => $qualifiedPlayers[3][5],
+                'group'        => 'last32',
+                'number'       => $fixtureNumber + 2,
+                'date'         => $fixtureDate
+            ];  
+            $fixtures[] = [
+                'tournamentId' => $tournamentId,
+                'homePlayerId' => $qualifiedPlayers[1][1],
+                'awayPlayerId' => $qualifiedPlayers[2][6],
+                'group'        => 'last32',
+                'number'       => $fixtureNumber + 3,
+                'date'         => $fixtureDate
+            ];  
+            $fixtureNumber += 4;
+            // moves the last group to the beginning of array 
+            // so we can do all 4 quarters of the draw
+            array_unshift( $qualifiedPlayers, array_pop( $qualifiedPlayers ) );
+        }
 
-    //     // TODO: make dynamic for different tournaments
-    //     $topPlayers = [];
-    //     $originalFixtureDates = [];
-    //     foreach($data['fixtures'] as $fixture) {
-    //         // return $fixture;
-    //         $originalFixtureDates[] = $fixture['date'];
-    //     }
-    //     sort($originalFixtureDates);
-    //     $lastFixtureDate = end($originalFixtureDates);
-    //     $weeksBetweenFixtures = $data['weeksBetweenFixtures'];
-    //     $date = date('Y-m-d', strtotime("$lastFixtureDate +$weeksBetweenFixtures weeks"));
+        return $fixtures;
+    }
 
-    //     foreach($tables as $groupLetter => $playerIds) {
-    //         foreach($playerIds as $playerId) {
-    //             $topPlayers[$groupLetter][] = $playersWithStats[$playerId];
-    //         }
-    //         usort($topPlayers[$groupLetter], function($a, $b) {
-    //             $aPoints = $a['points'];
-    //             $bPoints = $b['points'];
-    //             $aGd     = $a['gd'];
-    //             $bGd     = $b['gd'];
-    //             if($aPoints === $bPoints) return $bGd - $aGd;
-    //             return $bPoints - $aPoints;
-    //         });
-    //     }
+    private function getGroupQualifiers($tournament) {
+        // get the players with stats
+        $players          = $this->extractPlayersFromFixtures($tournament['fixtures']);
+        $fixtures         = $this->sortFixturesIntoGroups($tournament['fixtures'], $players);
+        $playersWithStats = $this->calculaterPlayerStats($players, $tournament['fixtures']);
+        $tables           = $this->assignPlayersToTables($fixtures);
 
-    //     $knockoutFixtures = [];
-       
-    //     foreach($topPlayers as $groupLetter => $players){
-    //         if($groupLetter === 'C') break;
-    //         switch ($groupLetter) {
-    //             case 'A':
-    //                 $oppositionGroupLetter = 'C';
-    //                 break;
-    //             default:
-    //                 $oppositionGroupLetter = 'D';
-    //                 break;
-    //         }
-    //         $indexMatchUps = [
-    //             [0,3],
-    //             [1,2],
-    //             [2,1],
-    //             [3,0]
-    //         ];
-    //         foreach($indexMatchUps as $matchUp) {
-    //             $knockoutFixtures[] = [
-    //                 'tournamentId' => $id, 
-    //                 'homePlayerId' => $topPlayers[$groupLetter][$matchUp[0]]['id'],
-    //                 'awayPlayerId' => $topPlayers[$oppositionGroupLetter][$matchUp[1]]['id'],
-    //                 'group'        => 'Last 16',
-    //                 'date'         => $date
-    //             ];
-    //         }
-    //     }
+        // sort tables
+        foreach($tables as $groupLetter => $group) {
+            usort($tables[$groupLetter], function($a, $b) use($playersWithStats) {
+                $aStats = $playersWithStats[$a];
+                $bStats = $playersWithStats[$b];
 
-    //     return $knockoutFixtures;
-    // }
+                $aPoints = $aStats['points'];
+                $bPoints = $bStats['points'];
+                $aGd     = $aStats['gd'];
+                $bGd     = $bStats['gd'];
+                if($aPoints === $bPoints) return $bGd - $aGd;
+                return $bPoints - $aPoints;
+            });
+            // reduce to only qualified players
+            $tables[$groupLetter] = array_slice($tables[$groupLetter], 0, $tournament['numberOfGroupTeamsToProgress']);
+        }
+
+        // make sure tables array is in order: A,B,C,D etc...
+        ksort($tables);
+
+        // return groups without letter keys
+        return array_values($tables);
+    }
+
+    private function getNextFixtureDate($fixtures, $weeksBetweenFixtures) {
+        $latestFixtureDate = max(array_map(function($fixture){
+            return $fixture['date'];
+        }, json_decode($fixtures, true)));
+
+        return date('Y-m-d', strtotime("+$weeksBetweenFixtures weeks", strtotime($latestFixtureDate)));
+    }
 }

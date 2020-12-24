@@ -23,6 +23,7 @@ $router->get('/tournament', 'TournamentController@index');
 $router->get('/tournament/{uid}', 'TournamentController@show');
 // fixture
 $router->post('/fixtures', 'FixturesController@store');
+$router->get('/setup-knockout', 'FixturesController@createFixturesForFirstKnockoutRound');
 // message
 $router->get('/message', 'MessageController@index');
 $router->post('/message', 'MessageController@store');
@@ -30,6 +31,7 @@ $router->put('/message/{id}', 'MessageController@update');
 // player
 $router->get('/player', 'PlayerController@index');
 $router->put('/player/{id}', 'PlayerController@update');
+
 
 $router->get('/version', function() {
     return response()->json([
