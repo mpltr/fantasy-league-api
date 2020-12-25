@@ -21,7 +21,8 @@ class Tournaments extends Model
         'weeksBetweenFixtures',
         'numberOfKnockoutRounds',
         'numberOfGroupTeamsToProgress',
-        'startDate'
+        'startDate',
+        'stage'
     ];
 
     /**

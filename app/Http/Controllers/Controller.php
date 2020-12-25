@@ -6,6 +6,16 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
+    protected $stages = [
+        'Group',
+        'Last 32',
+        'Last 16',
+        'Quarter Finals',
+        'Semi Finals',
+        'Final',
+        'Finished'
+    ];
+
     function error($message, $response_code) {
         return response([
             'status' => false, 
@@ -23,7 +33,8 @@ class Controller extends BaseController
                 'homePlayerScore' => $fixture['homePlayerScore'],
                 'awayPlayerId'    => $fixture['awayPlayerId'],
                 'awayPlayerScore' => $fixture['awayPlayerScore'],
-                'homePlayerName'  => $homePlayerName
+                'homePlayerName'  => $homePlayerName,
+                'number'          => $fixture['number']
             ];
             $groups[$fixture['group']][$fixture['date']][] = $groupFixture;
         };
@@ -31,6 +42,9 @@ class Controller extends BaseController
         foreach($groups as $group => $dates) {
             foreach($dates as $date => $fixtures) {
                 usort($fixtures, function($a, $b) {
+                    if($a['number'] !== $b['number']) {
+                        return $a['number'] > $b['number'] ? 1 : -1;
+                    }
                     return $a['homePlayerName'][0] > $b['homePlayerName'][0] ? 1 : -1;
                 });
                 $groups[$group][$date] = $fixtures;
@@ -47,7 +61,7 @@ class Controller extends BaseController
            $players[$homePlayerId] = $fixture['home_player'];
            $players[$awayPlayerId] = $fixture['away_player'];
         }
-        return array_unique($players);
+        return array_unique($players, SORT_REGULAR);
     }
 
     public function calculaterPlayerStats($players, $fixtures) {
@@ -106,7 +120,7 @@ class Controller extends BaseController
 
     public function assignPlayersToTables($fixtures) {
         foreach($fixtures as $group => $fixturesForDate) {
-            if(in_array($group, ['last32', 'Last 16', 'Quarters', 'Semis', 'Final'])) continue;
+            if(in_array($group, ['Last 32', 'Last 16', 'Quarter Finals', 'Semi Finals', 'Final'])) continue;
             // get all player ids for group fixtures
             foreach($fixturesForDate as $date => $fixtures){
                 foreach($fixtures as $fixture){
@@ -120,6 +134,7 @@ class Controller extends BaseController
                 }
             }
         };
+        ksort($tables);
         return $tables;
     }
 

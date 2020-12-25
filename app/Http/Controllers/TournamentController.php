@@ -124,7 +124,7 @@ class TournamentController extends Controller
             'messages'                     => $data['messages'],
             'fixtures'                     => $fixtures,
             'players'                      => $playersWithStats,
-            'tables'                       => $tables
+            'tables'                       => $tables,
         ];
     }
 
