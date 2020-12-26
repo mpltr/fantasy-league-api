@@ -34,7 +34,8 @@ class Controller extends BaseController
                 'awayPlayerId'    => $fixture['awayPlayerId'],
                 'awayPlayerScore' => $fixture['awayPlayerScore'],
                 'homePlayerName'  => $homePlayerName,
-                'number'          => $fixture['number']
+                'number'          => $fixture['number'],
+                'stage'           => in_array($fixture['group'], $this->stages) ? $fixture['group'] : 'Group'
             ];
             $groups[$fixture['group']][$fixture['date']][] = $groupFixture;
         };
