@@ -21,6 +21,8 @@ $router->get('/', function () use ($router) {
 $router->post('/tournament', 'TournamentController@store');
 $router->get('/tournament', 'TournamentController@index');
 $router->get('/tournament/{uid}', 'TournamentController@show');
+$router->put('/tournament/revert/{uid}', 'TournamentController@revertStage');
+
 // fixture
 $router->post('/fixtures', 'FixturesController@store');
 $router->get('/setup-knockout', 'FixturesController@createFixturesForFirstKnockoutRound');

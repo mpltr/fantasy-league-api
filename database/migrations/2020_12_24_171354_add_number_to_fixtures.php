@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddNumberAndWinnerIfDrawToFixtures extends Migration
+class AddNumberToFixtures extends Migration
 {
     /**
      * Run the migrations.
@@ -15,7 +15,6 @@ class AddNumberAndWinnerIfDrawToFixtures extends Migration
     {
         Schema::table('fixtures', function (Blueprint $table) {
             $table->integer('number')->default(0);
-            $table->integer('winnerIfDraw')->nullable();
         });
     }
 
@@ -28,7 +27,6 @@ class AddNumberAndWinnerIfDrawToFixtures extends Migration
     {
         Schema::table('fixtures', function (Blueprint $table) {
             $table->dropColumn('number');
-            $table->dropColumn('winnerIfDraw');
         });
     }
 }

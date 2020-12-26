@@ -125,6 +125,7 @@ class TournamentController extends Controller
             'fixtures'                     => $fixtures,
             'players'                      => $playersWithStats,
             'tables'                       => $tables,
+            'stage'                        => $data['stage']
         ];
     }
 
@@ -218,5 +219,35 @@ class TournamentController extends Controller
             $players[] = array_splice($players, 1, 1)[0];
         }
         return $fixtures;
+    }
+
+    public function revertStage($uid) {
+        // get the current stage
+        $tournament = Tournaments::where('uid', $uid)->select('uid', 'id', 'stage')->first();
+        $stage = $tournament['stage'];
+        $id = $tournament['id'];
+
+        // skip if group
+        if($stage === 'Group') {
+            return response([
+                'status'  => false,
+                'error' => 'Cannot revert a tournament when in Group Stage'
+            ]);
+        }
+
+        // delete the fixtures from current round
+        $deleteFixturesResult = Fixtures::where('tournamentId', $id)->where('group', $stage)->delete();
+
+        // revert the tournament stage
+        $lastStage = $this->getLastStage($stage);
+        $revertTournamentResult = Tournaments::where('id', $id)->update([
+            'stage' => $lastStage
+        ]);
+
+        return response([
+            'status' => true,
+            'message' => "Tournament successfully reverted to $lastStage stage"
+        ]);
+
     }
 }

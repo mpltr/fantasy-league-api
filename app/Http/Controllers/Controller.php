@@ -67,6 +67,8 @@ class Controller extends BaseController
     public function calculaterPlayerStats($players, $fixtures) {
         $form = [];
         foreach($fixtures as $fixture) {
+            // skip ko stage fixtures
+            if(in_array($fixture['group'], $this->stages)) continue;
             $home = $fixture['homePlayerId'];
             $away = $fixture['awayPlayerId'];
             $homeScore =  $fixture['homePlayerScore'];
@@ -140,5 +142,9 @@ class Controller extends BaseController
 
     public function slugify($string) {
         return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $string)));
+    }
+
+    protected function getLastStage($currentStage) {
+        return $this->stages[array_search($currentStage, $this->stages) - 1];
     }
 }

@@ -51,7 +51,7 @@ class FixturesController extends Controller
                 if($current_stage && $current_stage) {
                     if($current_stage === 'Group') {
                         $newFixtures = $this->createFixturesForFirstKnockoutRound($tournament);
-                    } elseif($current_stage !== 'Final') {
+                    } elseif(!in_array($current_stage, ['Final', 'Finished'])) {
                         $newFixtures = $this->getFixturesForNextKnockoutRound($tournament);
                     }
                     
@@ -68,7 +68,7 @@ class FixturesController extends Controller
                     if($success) {
                         return response([
                             'status' => true, 
-                            'message' => $message ?? 'Fixtures uodated and Tournament Complete!',
+                            'message' => $message ?? 'Fixtures Updated and Tournament Complete!',
                         ], 200);
                     } else {
                         return $this->error("One or more fixures failed to update", 422);
@@ -109,7 +109,6 @@ class FixturesController extends Controller
                 'tournamentId' => $tournamentId,
                 'homePlayerId' => $homeId,
                 'awayPlayerId' => $awayId,
-                'winnerIfDraw' => $this->getWinnerIfDraw($homeId, $awayId, $tournamentFixtures, $currentStage),
                 'group'        => $nextStage,
                 'number'       => $fixtureNumber, 
                 'date'         => $fixtureDate
@@ -120,7 +119,6 @@ class FixturesController extends Controller
                 'tournamentId' => $tournamentId,
                 'homePlayerId' => $homeId,
                 'awayPlayerId' => $awayId,
-                'winnerIfDraw' => $this->getWinnerIfDraw($homeId, $awayId, $tournamentFixtures, $currentStage),
                 'group'        => $nextStage,
                 'number'       => $fixtureNumber + 1,
                 'date'         => $fixtureDate
@@ -131,7 +129,6 @@ class FixturesController extends Controller
                 'tournamentId' => $tournamentId,
                 'homePlayerId' => $homeId,
                 'awayPlayerId' => $awayId,
-                'winnerIfDraw' => $this->getWinnerIfDraw($homeId, $awayId, $tournamentFixtures, $currentStage),
                 'group'        => $nextStage,
                 'number'       => $fixtureNumber + 2,
                 'date'         => $fixtureDate
@@ -142,7 +139,6 @@ class FixturesController extends Controller
                 'tournamentId' => $tournamentId,
                 'homePlayerId' => $homeId,
                 'awayPlayerId' => $awayId,
-                'winnerIfDraw' => $this->getWinnerIfDraw($homeId, $awayId, $tournamentFixtures, $currentStage),
                 'group'        => $nextStage,
                 'number'       => $fixtureNumber + 3,
                 'date'         => $fixtureDate
@@ -207,14 +203,13 @@ class FixturesController extends Controller
 
         $fixtureNumber = 0;
         for($i = 0; $i < count($currentStageFixtures); $i +=2) {
-            $firstWinner = $this->getFixtureWinner($currentStageFixtures[$i]);
-            $secondWinner = $this->getFixtureWinner($currentStageFixtures[$i + 1]);
+            $firstWinner = $this->getFixtureWinner($currentStageFixtures[$i], $tournament['fixtures'], $currentStage);
+            $secondWinner = $this->getFixtureWinner($currentStageFixtures[$i + 1], $tournament['fixtures'], $currentStage);
 
             $fixtures[] = [
                 'tournamentId' => $tournamentId,
                 'homePlayerId' => $firstWinner,
                 'awayPlayerId' => $secondWinner,
-                'winnerIfDraw' => $this->getWinnerIfDraw($firstWinner, $secondWinner, $tournamentFixtures, $currentStage),
                 'group'        => $this->getNextStage($currentStage), // TODO: Switch for next stage from stages
                 'number'       => $fixtureNumber,
                 'date'         => $fixtureDate
@@ -226,7 +221,7 @@ class FixturesController extends Controller
         return $fixtures;
     }
 
-    private function getFixtureWinner($fixture) {
+    private function getFixtureWinner($fixture, $fixtures, $stage) {
         extract($fixture);
 
         if($homePlayerScore !== $awayPlayerScore) {
@@ -237,12 +232,12 @@ class FixturesController extends Controller
             }
         }
         
-        return $homePlayerId;
+        return $this->getWinnerIfDraw($homePlayerId, $awayPlayerId, $fixtures, $stage);
     }
 
     private function getWinnerIfDraw($homeId, $awayId, $fixtures, $stage) {
-        // try and get if not group 
-        if($stage !== 'Group') {
+        // try and get from group stage 
+        if(!in_array($stage, ['Group', 'Last 32'])) {
             // get fixtures for both home and away players
             $homeFixtures = $this->getKnockoutFixturesByPlayerId($fixtures, $homeId);
             $awayFixtures = $this->getKnockoutFixturesByPlayerId($fixtures, $awayId);
@@ -250,44 +245,45 @@ class FixturesController extends Controller
             // compare to see who had more points in each round counting back
             // return a winner if one is bett
             for($i = 0; $i < count($homeFixtures); $i++) {
-                $fixture = $homeFixtures[$i];
-                $homePoints = $fixture[$homeId === $fixture['homePlayerId'] ? 'homePlayerScore' : 'awayPlayerScore'];
-                $awayPoints = $fixture[$awayId === $fixture['homePlayerId'] ? 'homePlayerScore' : 'awayPlayerScore'];
+                $homeFixture = $homeFixtures[$i];
+                $awayFixture = $awayFixtures[$i];
+                
+                $homePoints = $homeFixture[$homeId === $homeFixture['homePlayerId'] ? 'homePlayerScore' : 'awayPlayerScore'];
+                $awayPoints = $awayFixture[$awayId === $awayFixture['homePlayerId'] ? 'homePlayerScore' : 'awayPlayerScore'];
 
                 if($homePoints !== $awayPoints) return $homePoints > $awayPoints ? $homeId : $awayId;
             }
-        } else {
-            // Temp: fake tournament object for use with methods
-            // Will be solved by decoding fixtures in relationship
-            $tournament       = ['fixtures' => json_encode($fixtures)];
-            $players          = $this->extractPlayersFromFixtures($fixtures);
-            $playersWithStats = $this->calculaterPlayerStats($players, $fixtures);
-            
-            $homePlayer = $playersWithStats[$homeId];
-            $awayPlayer = $playersWithStats[$awayId];
-
-            // check points first 
-            $homeGroupPoints = $homePlayer['points'];
-            $awayGroupPoints = $awayPlayer['points'];
-            if($homeGroupPoints !== $awayGroupPoints) return $homeGroupPoints > $awayGroupPoints ? $homeId : $awayId;
-
-            // then goal difference
-            $homeGd = $homePlayer['gd'];
-            $awayGd = $awayPlayer['gd'];
-            if($homeGd !== $awayGd) return $homeGd > $awayGd ? $homeId : $awayId;
-
-            // then goals for
-            $homeFor = $homePlayer['for'];
-            $awayFor = $awayPlayer['for'];
-            if($homeFor !== $awayFor) return $homeFor > $awayFor ? $homeId : $awayId;
-
         }
 
-        return null;
+        // fallback to group results
+        $players          = $this->extractPlayersFromFixtures($fixtures);
+        $playersWithStats = $this->calculaterPlayerStats($players, $fixtures);
+        
+        $homePlayer = $playersWithStats[$homeId];
+        $awayPlayer = $playersWithStats[$awayId];
+
+        // check points first 
+        $homeGroupPoints = $homePlayer['points'];
+        $awayGroupPoints = $awayPlayer['points'];
+        if($homeGroupPoints !== $awayGroupPoints) return $homeGroupPoints > $awayGroupPoints ? $homeId : $awayId;
+
+        // then goal difference
+        $homeGd = $homePlayer['gd'];
+        $awayGd = $awayPlayer['gd'];
+        if($homeGd !== $awayGd) return $homeGd > $awayGd ? $homeId : $awayId;
+
+        // then goals for
+        $homeFor = $homePlayer['for'];
+        $awayFor = $awayPlayer['for'];
+        if($homeFor !== $awayFor) return $homeFor > $awayFor ? $homeId : $awayId;
     }
 
     private function sortFixturesByDate($a, $b) {
         return $a['date'] > $b['date'] ? 1 : -1;
+    }
+
+    private function sortFixturesByDateDescending($a, $b) {
+        return $a['date'] < $b['date'] ? 1 : -1;
     }
 
     private function sortFixturesByNumber($a, $b) {
@@ -304,10 +300,11 @@ class FixturesController extends Controller
     }
 
     private function getKnockoutFixturesByPlayerId($fixtures, $playerId) {
-        $knockoutFixtures = array_values(array_filter($fixtures, function($fixture) use($playerId){
+        // TEMP: json decode needs to be moved to relationship
+        $knockoutFixtures = array_values(array_filter(json_decode($fixtures, true), function($fixture) use($playerId){
             return in_array($playerId, [$fixture['homePlayerId'], $fixture['awayPlayerId']]) && in_array($fixture['group'], $this->stages);
         }));
-        usort($knockoutFixtures, array($this, 'sortFixturesByDate'));
+        usort($knockoutFixtures, array($this, 'sortFixturesByDateDescending'));
         return $knockoutFixtures;
     }
 
@@ -316,6 +313,7 @@ class FixturesController extends Controller
     }
 
     private function setNextTournamentStage($id, $currentStage) {
+        if($currentStage === 'Finished') return;
         Tournaments::where('id', $id)->update([
             'stage' => $this->getNextStage($currentStage)
         ]);
