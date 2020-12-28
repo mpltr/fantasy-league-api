@@ -210,7 +210,7 @@ class FixturesController extends Controller
                 'tournamentId' => $tournamentId,
                 'homePlayerId' => $firstWinner,
                 'awayPlayerId' => $secondWinner,
-                'group'        => $this->getNextStage($currentStage), // TODO: Switch for next stage from stages
+                'group'        => $this->getNextStage($currentStage),
                 'number'       => $fixtureNumber,
                 'date'         => $fixtureDate
             ];
@@ -294,7 +294,6 @@ class FixturesController extends Controller
         $stageFixtures = array_values(array_filter($fixtures, function($fixture) use($stage) {
             return $fixture['group'] === $stage;
         }));
-        // TODO: sort by NUMBER! not date
         usort($stageFixtures, array($this, 'sortFixturesByNumber'));
         return $stageFixtures;
     }

@@ -25,7 +25,6 @@ $router->put('/tournament/revert/{uid}', 'TournamentController@revertStage');
 
 // fixture
 $router->post('/fixtures', 'FixturesController@store');
-$router->get('/setup-knockout', 'FixturesController@createFixturesForFirstKnockoutRound');
 // message
 $router->get('/message', 'MessageController@index');
 $router->post('/message', 'MessageController@store');

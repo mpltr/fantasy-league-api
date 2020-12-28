@@ -19,8 +19,7 @@ class Fixtures extends Model
         'awayPlayerScore',
         'group',
         'date',
-        'number',
-        'winnerIfDraw'
+        'number'
     ];
 
     /**
