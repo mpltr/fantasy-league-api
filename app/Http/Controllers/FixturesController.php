@@ -193,6 +193,8 @@ class FixturesController extends Controller
     private function getFixturesForNextKnockoutRound($tournament) {
         $currentStage = $tournament['stage'];
         $tournamentId = $tournament['id'];
+        // Eloquent returns fixtures as "object" by default. Needs to be array for this method to do array_filter and array_map etc.
+        // TODO: refactor 
         $tournamentFixtures = $tournament['fixtures']->toArray();
 
         $currentStageFixtures = $this->getFixturesForStage($tournamentFixtures, $currentStage);
