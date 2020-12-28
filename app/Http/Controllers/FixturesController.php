@@ -92,7 +92,6 @@ class FixturesController extends Controller
         // get the qualified players seperated into their groups
         $qualifiedPlayers = $this->getGroupQualifiers($tournament);
         $fixtureDate = $this->getNextFixtureDate($tournament['fixtures'], $tournament['weeksBetweenFixtures']);
-        $tournamentFixtures = json_decode($tournament['fixtures'], true);
         $currentStage = $tournament['stage']; 
 
         $fixtures = [];
@@ -186,7 +185,7 @@ class FixturesController extends Controller
     private function getNextFixtureDate($fixtures, $weeksBetweenFixtures) {
         $latestFixtureDate = max(array_map(function($fixture){
             return $fixture['date'];
-        }, json_decode($fixtures, true)));
+        }, $fixtures));
 
         return date('Y-m-d', strtotime("+$weeksBetweenFixtures weeks", strtotime($latestFixtureDate)));
     }
@@ -194,10 +193,10 @@ class FixturesController extends Controller
     private function getFixturesForNextKnockoutRound($tournament) {
         $currentStage = $tournament['stage'];
         $tournamentId = $tournament['id'];
-        $tournamentFixtures = json_decode($tournament['fixtures'], true);
+        $tournamentFixtures = $tournament['fixtures']->toArray();
 
         $currentStageFixtures = $this->getFixturesForStage($tournamentFixtures, $currentStage);
-        $fixtureDate = $this->getNextFixtureDate($tournament['fixtures'], $tournament['weeksBetweenFixtures']);
+        $fixtureDate = $this->getNextFixtureDate($tournamentFixtures, $tournament['weeksBetweenFixtures']);
 
         $fixtures = [];
 
@@ -299,8 +298,7 @@ class FixturesController extends Controller
     }
 
     private function getKnockoutFixturesByPlayerId($fixtures, $playerId) {
-        // TEMP: json decode needs to be moved to relationship
-        $knockoutFixtures = array_values(array_filter(json_decode($fixtures, true), function($fixture) use($playerId){
+        $knockoutFixtures = array_values(array_filter($fixtures, function($fixture) use($playerId){
             return in_array($playerId, [$fixture['homePlayerId'], $fixture['awayPlayerId']]) && in_array($fixture['group'], $this->stages);
         }));
         usort($knockoutFixtures, array($this, 'sortFixturesByDateDescending'));
