@@ -74,6 +74,7 @@ class Controller extends BaseController
             $away = $fixture['awayPlayerId'];
             $homeScore =  $fixture['homePlayerScore'];
             $awayScore =  $fixture['awayPlayerScore'];
+
             if($homeScore && $awayScore){
                 $result = $homeScore - $awayScore;
                 $homeResult = $this->getResultLetter($result);

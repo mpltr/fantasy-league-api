@@ -54,7 +54,7 @@ class FixturesController extends Controller
                     } elseif(!in_array($current_stage, ['Final', 'Finished'])) {
                         $newFixtures = $this->getFixturesForNextKnockoutRound($tournament);
                     }
-                    
+
                     if(!empty($newFixtures)) {
                         foreach($newFixtures as $fixture) {
                             // create new fixture rows
@@ -90,8 +90,9 @@ class FixturesController extends Controller
 
     public function createFixturesForFirstKnockoutRound($tournament) {
         // get the qualified players seperated into their groups
+        $tournamentFixtures = $tournament['fixtures']->toArray();
         $qualifiedPlayers = $this->getGroupQualifiers($tournament);
-        $fixtureDate = $this->getNextFixtureDate($tournament['fixtures'], $tournament['weeksBetweenFixtures']);
+        $fixtureDate = $this->getNextFixtureDate($tournamentFixtures, $tournament['weeksBetweenFixtures']);
         $currentStage = $tournament['stage']; 
 
         $fixtures = [];
@@ -196,7 +197,6 @@ class FixturesController extends Controller
         // Eloquent returns fixtures as "object" by default. Needs to be array for this method to do array_filter and array_map etc.
         // TODO: refactor 
         $tournamentFixtures = $tournament['fixtures']->toArray();
-
         $currentStageFixtures = $this->getFixturesForStage($tournamentFixtures, $currentStage);
         $fixtureDate = $this->getNextFixtureDate($tournamentFixtures, $tournament['weeksBetweenFixtures']);
 
@@ -204,8 +204,8 @@ class FixturesController extends Controller
 
         $fixtureNumber = 0;
         for($i = 0; $i < count($currentStageFixtures); $i +=2) {
-            $firstWinner = $this->getFixtureWinner($currentStageFixtures[$i], $tournament['fixtures'], $currentStage);
-            $secondWinner = $this->getFixtureWinner($currentStageFixtures[$i + 1], $tournament['fixtures'], $currentStage);
+            $firstWinner = $this->getFixtureWinner($currentStageFixtures[$i], $tournamentFixtures, $currentStage);
+            $secondWinner = $this->getFixtureWinner($currentStageFixtures[$i + 1], $tournamentFixtures, $currentStage);
 
             $fixtures[] = [
                 'tournamentId' => $tournamentId,
@@ -300,6 +300,7 @@ class FixturesController extends Controller
     }
 
     private function getKnockoutFixturesByPlayerId($fixtures, $playerId) {
+        // TEMP: fix array issue
         $knockoutFixtures = array_values(array_filter($fixtures, function($fixture) use($playerId){
             return in_array($playerId, [$fixture['homePlayerId'], $fixture['awayPlayerId']]) && in_array($fixture['group'], $this->stages);
         }));
