@@ -67,6 +67,16 @@ class Controller extends BaseController
 
     public function calculaterPlayerStats($players, $fixtures) {
         $form = [];
+
+        // used to inisialse stats so += can be used
+        $initial_results = [
+            'win' => 0,
+            'draw' => 0,
+            'loss' => 0,
+            'against' => 0,
+            'for' => 0
+        ];
+
         foreach($fixtures as $fixture) {
             // skip ko stage fixtures
             if(in_array($fixture['group'], $this->stages)) continue;
@@ -81,6 +91,9 @@ class Controller extends BaseController
                 $awayResult = $this->getResultLetter($result, false);
                 $form[$home][] = $homeResult;
                 $form[$away][] = $awayResult;
+                // initialise results
+                if(!isset($players[$home]['win'])) $players[$home] = array_merge($players[$home], $initial_results);
+                if(!isset($players[$away]['win'])) $players[$away] = array_merge($players[$away], $initial_results);
                 $players[$home]['win']      += $result > 0 ? 1 : 0;
                 $players[$home]['draw']     += $result == 0 ? 1 : 0;
                 $players[$home]['loss']     += $result < 0 ? 1 : 0;

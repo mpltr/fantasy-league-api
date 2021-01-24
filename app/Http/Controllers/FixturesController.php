@@ -154,9 +154,10 @@ class FixturesController extends Controller
 
     private function getGroupQualifiers($tournament) {
         // get the players with stats
-        $players          = $this->extractPlayersFromFixtures($tournament['fixtures']);
-        $fixtures         = $this->sortFixturesIntoGroups($tournament['fixtures'], $players);
-        $playersWithStats = $this->calculaterPlayerStats($players, $tournament['fixtures']);
+        $tournamentFixtures = $tournament['fixtures']->toArray();
+        $players          = $this->extractPlayersFromFixtures($tournamentFixtures);
+        $fixtures         = $this->sortFixturesIntoGroups($tournamentFixtures, $players);
+        $playersWithStats = $this->calculaterPlayerStats($players, $tournamentFixtures);
         $tables           = $this->assignPlayersToTables($fixtures);
 
         // sort tables

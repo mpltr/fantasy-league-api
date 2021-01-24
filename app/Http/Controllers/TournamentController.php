@@ -108,13 +108,15 @@ class TournamentController extends Controller
     public function show($uid) {
         
         $data = Tournaments::where('uid', $uid)->with('fixtures', 'fixtures.home_player', 'fixtures.away_player', 'messages')->first();
-        
-        $players  = $this->extractPlayersFromFixtures($data['fixtures']);
-        
-        $fixtures = $this->sortFixturesIntoGroups($data['fixtures'], $players);
 
-        $playersWithStats = $this->calculaterPlayerStats($players, $data['fixtures']);
+        $original_fixtures = $data['fixtures']->toArray();
         
+        $players  = $this->extractPlayersFromFixtures($original_fixtures);
+        
+        $fixtures = $this->sortFixturesIntoGroups($original_fixtures, $players);
+
+        $playersWithStats = $this->calculaterPlayerStats($players, $original_fixtures);
+
         $tables = $this->assignPlayersToTables($fixtures);
 
         return [
