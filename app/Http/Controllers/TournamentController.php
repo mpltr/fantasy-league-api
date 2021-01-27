@@ -106,7 +106,7 @@ class TournamentController extends Controller
     }
 
     public function show($uid) {
-        
+
         $data = Tournaments::where('uid', $uid)->with('fixtures', 'fixtures.home_player', 'fixtures.away_player', 'messages')->first();
 
         $original_fixtures = $data['fixtures']->toArray();

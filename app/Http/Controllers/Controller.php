@@ -108,9 +108,9 @@ class Controller extends BaseController
         }
         // calculate ew points and played
         return array_map(function($player) use ($form) {
-            $win = $player['win'];
-            $loss = $player['loss'];
-            $draw = $player['draw'];
+            $win = $player['win'] ?? null;
+            $loss = $player['loss'] ?? null;
+            $draw = $player['draw'] ?? null;
             if($win || $loss || $draw) {
                 $player['played'] = $win + $loss + $draw;
                 $player['points'] = $win * 3 + $draw;
