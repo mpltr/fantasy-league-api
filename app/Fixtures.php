@@ -18,7 +18,8 @@ class Fixtures extends Model
         'awayPlayerId',
         'awayPlayerScore',
         'group',
-        'date'
+        'date',
+        'number'
     ];
 
     /**

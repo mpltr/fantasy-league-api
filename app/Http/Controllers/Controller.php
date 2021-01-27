@@ -6,6 +6,16 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
+    protected $stages = [
+        'Group',
+        'Last 32',
+        'Last 16',
+        'Quarter Finals',
+        'Semi Finals',
+        'Final',
+        'Finished'
+    ];
+
     function error($message, $response_code) {
         return response([
             'status' => false, 
@@ -23,7 +33,9 @@ class Controller extends BaseController
                 'homePlayerScore' => $fixture['homePlayerScore'],
                 'awayPlayerId'    => $fixture['awayPlayerId'],
                 'awayPlayerScore' => $fixture['awayPlayerScore'],
-                'homePlayerName'  => $homePlayerName
+                'homePlayerName'  => $homePlayerName,
+                'number'          => $fixture['number'],
+                'stage'           => in_array($fixture['group'], $this->stages) ? $fixture['group'] : 'Group'
             ];
             $groups[$fixture['group']][$fixture['date']][] = $groupFixture;
         };
@@ -31,6 +43,9 @@ class Controller extends BaseController
         foreach($groups as $group => $dates) {
             foreach($dates as $date => $fixtures) {
                 usort($fixtures, function($a, $b) {
+                    if($a['number'] !== $b['number']) {
+                        return $a['number'] > $b['number'] ? 1 : -1;
+                    }
                     return $a['homePlayerName'][0] > $b['homePlayerName'][0] ? 1 : -1;
                 });
                 $groups[$group][$date] = $fixtures;
@@ -47,22 +62,38 @@ class Controller extends BaseController
            $players[$homePlayerId] = $fixture['home_player'];
            $players[$awayPlayerId] = $fixture['away_player'];
         }
-        return array_unique($players);
+        return array_unique($players, SORT_REGULAR);
     }
 
     public function calculaterPlayerStats($players, $fixtures) {
         $form = [];
+
+        // used to inisialse stats so += can be used
+        $initial_results = [
+            'win' => 0,
+            'draw' => 0,
+            'loss' => 0,
+            'against' => 0,
+            'for' => 0
+        ];
+
         foreach($fixtures as $fixture) {
+            // skip ko stage fixtures
+            if(in_array($fixture['group'], $this->stages)) continue;
             $home = $fixture['homePlayerId'];
             $away = $fixture['awayPlayerId'];
             $homeScore =  $fixture['homePlayerScore'];
             $awayScore =  $fixture['awayPlayerScore'];
+
             if($homeScore && $awayScore){
                 $result = $homeScore - $awayScore;
                 $homeResult = $this->getResultLetter($result);
                 $awayResult = $this->getResultLetter($result, false);
                 $form[$home][] = $homeResult;
                 $form[$away][] = $awayResult;
+                // initialise results
+                if(!isset($players[$home]['win'])) $players[$home] = array_merge($players[$home], $initial_results);
+                if(!isset($players[$away]['win'])) $players[$away] = array_merge($players[$away], $initial_results);
                 $players[$home]['win']      += $result > 0 ? 1 : 0;
                 $players[$home]['draw']     += $result == 0 ? 1 : 0;
                 $players[$home]['loss']     += $result < 0 ? 1 : 0;
@@ -77,9 +108,9 @@ class Controller extends BaseController
         }
         // calculate ew points and played
         return array_map(function($player) use ($form) {
-            $win = $player['win'];
-            $loss = $player['loss'];
-            $draw = $player['draw'];
+            $win = $player['win'] ?? null;
+            $loss = $player['loss'] ?? null;
+            $draw = $player['draw'] ?? null;
             if($win || $loss || $draw) {
                 $player['played'] = $win + $loss + $draw;
                 $player['points'] = $win * 3 + $draw;
@@ -106,7 +137,7 @@ class Controller extends BaseController
 
     public function assignPlayersToTables($fixtures) {
         foreach($fixtures as $group => $fixturesForDate) {
-            if(in_array($group, ['Last 16', 'Quarters', 'Semis', 'Final'])) continue;
+            if(in_array($group, ['Last 32', 'Last 16', 'Quarter Finals', 'Semi Finals', 'Final'])) continue;
             // get all player ids for group fixtures
             foreach($fixturesForDate as $date => $fixtures){
                 foreach($fixtures as $fixture){
@@ -120,10 +151,15 @@ class Controller extends BaseController
                 }
             }
         };
+        ksort($tables);
         return $tables;
     }
 
     public function slugify($string) {
         return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $string)));
+    }
+
+    protected function getLastStage($currentStage) {
+        return $this->stages[array_search($currentStage, $this->stages) - 1];
     }
 }

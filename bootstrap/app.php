@@ -65,6 +65,10 @@ $app->singleton(
 //     'auth' => App\Http\Middleware\Authenticate::class,
 // ]);
 
+$app->middleware([
+    App\Http\Middleware\Cors::class
+]);
+
 /*
 |--------------------------------------------------------------------------
 | Register Service Providers
@@ -96,9 +100,5 @@ $app->router->group([
 ], function ($router) {
     require __DIR__.'/../routes/web.php';
 });
-
-$app->middleware([
-    App\Http\Middleware\Cors::class
- ]);
 
 return $app;
