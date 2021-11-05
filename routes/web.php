@@ -25,6 +25,9 @@ $router->put('/tournament/revert/{uid}', 'TournamentController@revertStage');
 
 // fixture
 $router->post('/fixtures', 'FixturesController@store');
+$router->get('/fixtures', 'FixturesController@index');
+$router->put('/fixtures/{id}', 'FixturesController@update');
+$router->put('/fixtures/bulk/{ids}', 'FixturesController@updateInBulk');
 // message
 $router->get('/message', 'MessageController@index');
 $router->post('/message', 'MessageController@store');
@@ -34,10 +37,8 @@ $router->get('/player', 'PlayerController@index');
 $router->put('/player/{id}', 'PlayerController@update');
 
 
-$router->get('/version', function() {
+$router->get('/version', function () {
     return response()->json([
         'stuff' => phpinfo()
     ]);
 });
-
-
