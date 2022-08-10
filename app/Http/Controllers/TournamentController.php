@@ -134,6 +134,8 @@ class TournamentController extends Controller
     public function index() {
         $data = Tournaments::all();
 
+        // return 'Hello';
+
         return $data;
     }
 

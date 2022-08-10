@@ -101,4 +101,10 @@ $app->router->group([
     require __DIR__.'/../routes/web.php';
 });
 
+// for laravel 7
+date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
+
+// for laravel 8
+$app->register(Illuminate\Database\Eloquent\LegacyFactoryServiceProvider::class);
+
 return $app;
