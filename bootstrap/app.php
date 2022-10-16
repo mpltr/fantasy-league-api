@@ -21,6 +21,8 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
+
+// Uncomment this if you want to use Artisan in routes/web.php
 // $app->withFacades();
 
 $app->withEloquent();
