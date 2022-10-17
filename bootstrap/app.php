@@ -23,7 +23,7 @@ $app = new Laravel\Lumen\Application(
 
 
 // Uncomment this if you want to use Artisan in routes/web.php
-// $app->withFacades();
+$app->withFacades();
 
 $app->withEloquent();
 
