@@ -162,4 +162,119 @@ class Controller extends BaseController
     protected function getLastStage($currentStage) {
         return $this->stages[array_search($currentStage, $this->stages) - 1];
     }
+
+    protected function getLowestScore($fixture) {
+        $isHome = $fixture['homePlayerScore'] < $fixture['awayPlayerScore'];
+        $score  = $isHome ? $fixture['homePlayerScore'] : $fixture['awayPlayerScore'];
+
+        return [
+            'isHome' => $isHome,
+            'score'  => $score,
+            'name' => $isHome ? $fixture['home_player']['name'] : $fixture['away_player']['name']
+        ];
+    }
+
+    protected function getHighestScore($fixture) {
+        $isHome = $fixture['homePlayerScore'] > $fixture['awayPlayerScore'];
+        $score  = $isHome ? $fixture['homePlayerScore'] : $fixture['awayPlayerScore'];
+
+        return [
+            'isHome' => $isHome,
+            'score'  => $score,
+            'name' => $isHome ? $fixture['home_player']['name'] : $fixture['away_player']['name']
+        ];
+    }
+
+    protected function calculateMostPoints($fixtures) {
+        // Most points in fixture
+        usort($fixtures, function ($a, $b) {
+            $aScore = $this->getHighestScore($a)['score'];
+            $bScore = $this->getHighestScore($b)['score'];
+            if ($aScore === null) return 1;
+            if ($bScore === null) return -1;
+            return $aScore > $bScore ? -1 : 1;
+        });
+        $mostPointsInFixture = reset($fixtures);
+        $player = $this->getHighestScore($mostPointsInFixture);
+        $opponent = $this->getLowestScore($mostPointsInFixture);
+
+        return [
+            'name'     => 'Most Points Scored',
+            'stat'    => $player['score'],
+            'primaryText'   => $player['name'],
+            'secondaryText' => "vs " . $opponent['name'] . " (" . $opponent['score'] . ")",
+        ];
+      
+    }
+
+    protected function calculateLeastPointsAndWon($fixtures) {
+        usort($fixtures, function ($a, $b) {
+            $aScore = $this->getHighestScore($a)['score'];
+            $bScore = $this->getHighestScore($b)['score'];
+            if($aScore === null) return 1;
+            if($bScore === null) return -1;
+            return $aScore < $bScore ? -1 : 1;
+        });
+        $leastPointsAndWon = reset($fixtures);
+        $player = $this->getHighestScore($leastPointsAndWon);
+        $opponent = $this->getLowestScore($leastPointsAndWon);
+
+        return [
+            'name'     => 'Least Points and Won',
+            'stat'    => $player['score'],
+            'primaryText'   => $player['name'],
+            'secondaryText' => "vs " . $opponent['name'] . " (" . $opponent['score'] . ")",
+        ];
+    }
+
+    protected function calculateMostPointsAndLost($fixtures) {
+        usort($fixtures, function ($a, $b) {
+            $aLowest = $this->getLowestScore($a)['score'];
+            $bLowest = $this->getLowestScore($b)['score'];
+            return $aLowest > $bLowest ? -1 : 1;
+        });
+        $mostPointsWithoutWin = reset($fixtures);
+        $player = $this->getLowestScore($mostPointsWithoutWin);
+        $opponent = $this->getHighestScore($mostPointsWithoutWin);
+
+        return [
+            'name'     => 'Most Points and Lost',
+            'stat'    => $player['score'],
+            'primaryText'   => $player['name'],
+            'secondaryText' => "vs " . $opponent['name'] . " (" . $opponent['score'] . ")",
+        ];
+    }
+
+    protected function calculateOutrightStats($fixtures, $players) {
+
+        $stats = [];
+        $stats[] = $this->calculateMostPoints($fixtures);
+        $stats[] = $this->calculateLeastPointsAndWon($fixtures);
+        $stats[] = $this->calculateMostPointsAndLost($fixtures);
+
+        // Biggest points margin
+        // usort($fixtures, function ($a, $b) {
+        //     $aHighScore = $this->getHighestScore($a)['score'];
+        //     $aLowScore  = $this->getLowestScore($a)['score'];
+        //     $bHighScore = $this->getHighestScore($b)['score'];
+        //     $bLowScore  = $this->getLowestScore($b)['score'];
+
+        //     if (!$aHighScore || !$aLowScore) return 1;
+        //     if (!$bHighScore || !$bLowScore) return -1;
+
+        //     $aMargin = $aHighScore - $aLowScore;
+        //     $bMargin = $bHighScore - $bLowScore;
+        //     return $aMargin > $bMargin ? -1 : 1;
+        // });
+        // $biggestPointsMargin = reset($fixtures);
+        
+        return $stats;
+     
+        // return [
+        //     'mostPointsInFixture'  => $mostPointsInFixture,
+        //     'leastPointsAndWon' => $leastPointsAndWon,
+        //     'mostPointsWithoutWin' => $mostPointsWithoutWin,
+        //     'biggestPointsMargin' => $biggestPointsMargin
+        // ];
+    }
 }

@@ -2,7 +2,7 @@
 
 return [
     'default' => 'pgsql',
-    'migrations' => 'migrations', 
+    'migrations' => 'migrations',
     'connections' => [
         'pgsql' => [
             'driver' => 'pgsql',
@@ -10,6 +10,7 @@ return [
             'database' => getenv('DB_DATABASE'),
             'username' => getenv('DB_USERNAME'),
             'password' => getenv('DB_PASSWORD'),
+            'port' => 5432,
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
         ]

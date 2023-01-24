@@ -21,7 +21,9 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
-// $app->withFacades();
+
+// Uncomment this if you want to use Artisan in routes/web.php
+$app->withFacades();
 
 $app->withEloquent();
 
@@ -100,5 +102,11 @@ $app->router->group([
 ], function ($router) {
     require __DIR__.'/../routes/web.php';
 });
+
+// for laravel 7
+date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
+
+// for laravel 8
+$app->register(Illuminate\Database\Eloquent\LegacyFactoryServiceProvider::class);
 
 return $app;
