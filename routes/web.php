@@ -37,6 +37,9 @@ $router->put('/message/{id}', 'MessageController@update');
 // player
 $router->get('/player', 'PlayerController@index');
 $router->put('/player/{id}', 'PlayerController@update');
+// users
+$router->get('/users', 'UsersController@index');
+$router->get('/users/{id}', 'UsersController@show');
 
 // migrate
 $router->get('/migrate/tournaments', 'MigrateController@tournaments');
@@ -49,6 +52,9 @@ $router->get('/version', function () {
         'stuff' => phpinfo()
     ]);
 });
+
+// Unify
+$router->get('/unify/players', 'UnificationController@players');
 
 
 // For use on HelioHost, where we have no SSH to CLI
