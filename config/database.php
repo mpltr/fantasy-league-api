@@ -2,7 +2,7 @@
 
 return [
     'default' => 'pgsql',
-    'migrations' => 'migrations', 
+    'migrations' => 'migrations',
     'connections' => [
         'pgsql' => [
             'driver' => 'pgsql',

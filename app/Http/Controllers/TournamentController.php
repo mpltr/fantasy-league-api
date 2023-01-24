@@ -73,7 +73,7 @@ class TournamentController extends Controller
 
             // PLAYERS
             foreach($newPlayers as $player) {
-                // verify player 
+                // verify player
                 if(empty($player['name'])) return $this->error("1 or more players are missing data", 422);
                 // create new player entry
                 $playerEntries[] = Players::create([
@@ -119,6 +119,8 @@ class TournamentController extends Controller
 
         $tables = $this->assignPlayersToTables($fixtures);
 
+        $outrightStats = $this->calculateOutrightStats($original_fixtures, $players);
+
         return [
             'id'                           => $data['id'],
             'name'                         => $data['tournamentName'],
@@ -127,7 +129,8 @@ class TournamentController extends Controller
             'fixtures'                     => $fixtures,
             'players'                      => $playersWithStats,
             'tables'                       => $tables,
-            'stage'                        => $data['stage']
+            'stage'                        => $data['stage'],
+            'outrightStats'                => $outrightStats
         ];
     }
 

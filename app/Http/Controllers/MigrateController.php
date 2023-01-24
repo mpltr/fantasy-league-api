@@ -20,6 +20,8 @@ class MigrateController extends Controller
         //
     }
 
+    private $host = 'https://mpltr.helioho.st';
+
     private function fetchMigrationData($url)
     {
         $client = new \GuzzleHttp\Client();
@@ -31,7 +33,7 @@ class MigrateController extends Controller
     
     public function tournaments(Request $request)
     { 
-        $data = $this->fetchMigrationData('https://stormy-gorge-28890.herokuapp.com/tournament');
+        $data = $this->fetchMigrationData("$this->host/tournament");
         $result = Tournaments::insert($data);
 
         return response($result);
@@ -39,7 +41,7 @@ class MigrateController extends Controller
 
     public function players(Request $request)
     {
-        $data = $this->fetchMigrationData('https://stormy-gorge-28890.herokuapp.com/player');
+        $data = $this->fetchMigrationData("$this->host/player");
         $result = Players::insert($data);
 
         return response($result);
@@ -47,7 +49,7 @@ class MigrateController extends Controller
 
     public function fixtures (Request $request)
     {
-        $data = $this->fetchMigrationData('https://stormy-gorge-28890.herokuapp.com/fixtures');
+        $data = $this->fetchMigrationData("$this->host/fixtures");
         $result = Fixtures::insert($data);
 
         return response($result);
@@ -55,7 +57,7 @@ class MigrateController extends Controller
 
     public function messages(Request $request)
     {
-        $data = $this->fetchMigrationData('https://stormy-gorge-28890.herokuapp.com/message');
+        $data = $this->fetchMigrationData("$this->host/message");
         $result = Messages::insert($data);
 
         return response($result);
@@ -64,7 +66,7 @@ class MigrateController extends Controller
     // Not sure users is even used!
     // public function users(Request $request) 
     // {
-    //     $data = $this->fetchMigrationData('https://stormy-gorge-28890.herokuapp.com/user');
+    //     $data = $this->fetchMigrationData('$this->hostuser');
     //     $result = User::insert($data);
 
     //     return response($result);
