@@ -1,6 +1,6 @@
 <?php
 
-// use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Artisan;
 
 
 /*
@@ -68,19 +68,19 @@ $router->get('/unify/players', 'UnificationController@players');
 // 	Artisan::call('key:generate');
 // });
 
-// $router->get('/migrate', function () {
-//     Artisan::call('migrate', array(
-// 		'--force' => true,
-// 		'--path' => 'database/migrations'
-// 	));
-// });
-
-$router->get('/update-index/{table}', function($table) {
-    $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
-    $newId = $latestId + 1;
-    $sequence = $table . "_id_seq";
-   
-    DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
-
-    echo "Updated ID to $newId";
+$router->get('/migrate', function () {
+    Artisan::call('migrate', array(
+		'--force' => true,
+		'--path' => 'database/migrations'
+	));
 });
+
+// $router->get('/update-index/{table}', function($table) {
+//     $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
+//     $newId = $latestId + 1;
+//     $sequence = $table . "_id_seq";
+   
+//     DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
+
+//     echo "Updated ID to $newId";
+// });
