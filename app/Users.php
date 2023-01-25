@@ -3,12 +3,9 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Korridor\LaravelHasManyMerged\HasManyMerged;
-use Korridor\LaravelHasManyMerged\HasManyMergedRelation;
 
 class Users extends Model
 {
-    use HasManyMergedRelation;
     /**
      * The attributes that are mass assignable.
      *
