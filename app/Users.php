@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Korridor\LaravelHasManyMerged\HasManyMerged;
+use Korridor\LaravelHasManyMerged\HasManyMergedRelation;
 
 class Users extends Model
 {
+    use HasManyMergedRelation;
     /**
      * The attributes that are mass assignable.
      *
@@ -27,22 +30,14 @@ class Users extends Model
         return $this->hasManyThrough('App\Fixtures', 'App\Players', 'userId', 'awayPlayerId', 'id');
     }
 
-    // public function tournaments() {
-    //     return $this->hasManyThrough(
-    //         'App\Tournaments',
-    //         'App\Players',
-    //         'userId',
-    //         'id',
-    //         'id',
-    //         'tournamentId'
-    //     );
-    // }
-
     public function tournaments() {
-        return $this->load(['players'], function ($q) use (&$tournaments) {
-            $tournaments = $q->get()->unique();
-        });
+        return $this->hasManyThrough(
+            'App\Tournaments',
+            'App\Players',
+            'userId',
+            'id',
+            'id',
+            'tournamentId'
+        );
     }
-
-
 }

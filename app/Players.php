@@ -22,8 +22,14 @@ class Players extends Model
         'userId'
     ];
 
-    public function fixtures() {
+    public function fixtures()
+    {
         return $this->hasManyMerged('App\Fixtures', ['homePlayerId', 'awayPlayerId']);
+    }
+
+    public function tournaments()
+    {
+        return $this->belongsToMany('App\Tournaments', 'tournamentId');
     }
 }
 

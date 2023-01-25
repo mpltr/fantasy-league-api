@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Tournaments;
+
 use Illuminate\Http\Request;
 use App\Users;
 
@@ -22,27 +22,58 @@ class UsersController extends Controller
 
     public function show($id)
     {
+
         $user = Users::where('id', $id)
-                    ->with('players', 'players.fixtures', 'players.fixtures.tournament')->first();
+                    ->with('tournaments', 'players', 'players.fixtures')
+                    ->first();
+                    
+        $allFixtures = array_reduce($user->players->toArray(), function ($carry, $player) {
+            $carry = array_merge($carry, $player['fixtures']);
+            return $carry;
+        }, []);
 
-        //             // ->with('home_fixtures')
-        //             // ->with('away_fixtures')
-        //             ->with('tournaments')
-        //             ->first();
-        
-        // $combinedFixtures = $user->home_fixtures->merge($user->away_fixtures)->toArray();
+        return [
+            "outrights" => array_merge([["title" => "Seasons", "value" => count($user->tournaments)]], $this->getFixtureStats($allFixtures, $id))
+        ];
+    }
 
-        // $tournamentIds = array_reduce($combinedFixtures, function($carry, $fixture){
-        //     $id = $fixture['tournamentId'];
-        //     if (!in_array($id, $carry)) $carry[] = $id;
-        //     return $carry;
-        // }, []);
-        
-        // $tournaments = Tournaments::whereIn('id', $tournamentIds)
-        //     ->get()
-        //     ->sortByDesc('startDate')
-        //     ->values();
+    private function getFixtureStats($fixtures, $playerId)
+    {   
+        extract($this->calculateFixtureTotals($fixtures, $playerId));
 
-        return $user; 
+        return [
+            [
+                "title" => "Matches",
+                "value" => $matches
+            ],
+            [
+                "title" => "Win %",
+                "value" => $this->calculateWinPercentage($fixtures, $playerId)  . "%"
+            ],
+            [
+                'title' => "Won",
+                "value" => $win
+            ],
+            [
+                'title' => "Loss",
+                "value" => $loss
+            ],
+            [
+                'title' => "Drawn",
+                "value" => $draw
+            ],
+            [
+                'title' => "For",
+                'value' => $for
+            ],
+            [
+                'title' => "Against",
+                'value' => $against
+            ],
+            [
+                'title' => "P/D",
+                'value' => $for - $against
+            ],
+        ];
     }
 }

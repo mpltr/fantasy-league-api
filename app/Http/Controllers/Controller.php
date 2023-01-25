@@ -245,6 +245,51 @@ class Controller extends BaseController
         ];
     }
 
+    protected function filterPlayedFixtures($fixtures) {
+        return array_filter($fixtures, function ($fixture) {
+            return !is_null($fixture['homePlayerScore']) && !is_null($fixture['awayPlayerScore']);
+        });
+    }
+
+    protected function calculateWinPercentage($fixtures, $playerId) {
+        $winLossDraw = $this->calculateFixtureTotals($fixtures, $playerId);
+
+        extract($winLossDraw);
+
+        // TODO: Division by 0 error if no matches!!
+        return round(100 / ($matches) * $win, 2);
+    }
+
+    protected function calculateFixtureTotals($fixtures, $playerId) {
+
+        return array_reduce($this->filterPlayedFixtures($fixtures), function ($carry, $fixture) use ($playerId) {
+            $isHome = $playerId === $fixture['homePlayerId'];
+            extract($fixture);
+
+            if($homePlayerScore > $awayPlayerScore) {
+                $isHome ? $carry['win']++ : $carry['loss']++;
+            } else if ($awayPlayerScore > $homePlayerScore) {
+                $isHome ? $carry['loss']++ : $carry['win']++;
+            } else {
+                $carry['draw']++;
+            } 
+
+            $isHome ? $carry['for'] = $carry['for'] + $homePlayerScore : $carry['for'] = $carry['for'] + $awayPlayerScore;
+            $isHome ? $carry['against'] = $carry['against'] + $awayPlayerScore : $carry['against'] = $carry['against'] + $homePlayerScore;
+
+            $carry['matches']++;
+
+            return $carry;
+        },[
+            'win' => 0,
+            'loss' => 0,
+            'draw' => 0,
+            'for' => 0,
+            'against' => 0,
+            'matches' => 0
+        ]);
+    }
+
     protected function calculateOutrightStats($fixtures, $players) {
 
         $stats = [];

@@ -6,6 +6,13 @@ use Illuminate\Http\Request;
 use App\Players;
 use App\Users;
 
+/**
+ * Controlled created to unify players into a new table: users,
+ * so we can more easily combine player stats into a user view
+ * Also adds additional row values to existing tables.
+ *
+ */
+
 
 class UnificationController extends Controller
 {
@@ -25,6 +32,8 @@ class UnificationController extends Controller
         }, []);
         foreach ($players as $player) {
             $name = $player->name;
+            $firstFixture = $player->fixtures()->first();
+            $tournamentId = $firstFixture->tournamentId;
             if (!array_key_exists($name, $usersIndex)){
                 $result = Users::create([
                     'name' => $name
@@ -32,10 +41,11 @@ class UnificationController extends Controller
                 $usersIndex[$name] = $result['id'];
             }
             Players::where('id', $player->id)->update([
-                'userId' => $usersIndex[$name]
+                'userId' => $usersIndex[$name],
+                'tournamentId' => $tournamentId
             ]);
         }
-        return $usersIndex;
-    }
 
+        return $users;
+    }
 }
