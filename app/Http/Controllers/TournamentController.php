@@ -135,9 +135,7 @@ class TournamentController extends Controller
     }
 
     public function index() {
-        $data = Tournaments::all();
-
-        // return 'Hello';
+        $data = Tournaments::orderByDesc('startDate')->get();
 
         return $data;
     }
