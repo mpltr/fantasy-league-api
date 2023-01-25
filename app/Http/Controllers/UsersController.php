@@ -23,22 +23,26 @@ class UsersController extends Controller
     public function show($id)
     {
         $user = Users::where('id', $id)
-                    ->with('players')
-                    ->with('home_fixtures')
-                    ->with('away_fixtures')
-                    ->first();
-        
-        $combinedFixtures = $user->home_fixtures->merge($user->away_fixtures)->toArray();
+                    ->with('players', 'players.fixtures', 'players.fixtures.tournament')->first();
 
-        $tournamentIds = array_reduce($combinedFixtures, function($carry, $fixture){
-            $id = $fixture['tournamentId'];
-            if (!in_array($id, $carry)) $carry[] = $id;
-            return $carry;
-        }, []);
-        $tournaments = Tournaments::whereIn('id', $tournamentIds)
-            ->get()
-            ->sortByDesc('startDate')
-            ->values();
-        return $tournaments; 
+        //             // ->with('home_fixtures')
+        //             // ->with('away_fixtures')
+        //             ->with('tournaments')
+        //             ->first();
+        
+        // $combinedFixtures = $user->home_fixtures->merge($user->away_fixtures)->toArray();
+
+        // $tournamentIds = array_reduce($combinedFixtures, function($carry, $fixture){
+        //     $id = $fixture['tournamentId'];
+        //     if (!in_array($id, $carry)) $carry[] = $id;
+        //     return $carry;
+        // }, []);
+        
+        // $tournaments = Tournaments::whereIn('id', $tournamentIds)
+        //     ->get()
+        //     ->sortByDesc('startDate')
+        //     ->values();
+
+        return $user; 
     }
 }

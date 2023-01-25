@@ -26,4 +26,23 @@ class Users extends Model
     public function away_fixtures() {
         return $this->hasManyThrough('App\Fixtures', 'App\Players', 'userId', 'awayPlayerId', 'id');
     }
+
+    // public function tournaments() {
+    //     return $this->hasManyThrough(
+    //         'App\Tournaments',
+    //         'App\Players',
+    //         'userId',
+    //         'id',
+    //         'id',
+    //         'tournamentId'
+    //     );
+    // }
+
+    public function tournaments() {
+        return $this->load(['players'], function ($q) use (&$tournaments) {
+            $tournaments = $q->get()->unique();
+        });
+    }
+
+
 }
