@@ -1,6 +1,6 @@
 <?php
 
-// use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Artisan;
 
 
 /*
@@ -37,6 +37,9 @@ $router->put('/message/{id}', 'MessageController@update');
 // player
 $router->get('/player', 'PlayerController@index');
 $router->put('/player/{id}', 'PlayerController@update');
+// users
+$router->get('/users', 'UsersController@index');
+$router->get('/users/{id}', 'UsersController@show');
 
 // migrate
 $router->get('/migrate/tournaments', 'MigrateController@tournaments');
@@ -50,6 +53,9 @@ $router->get('/version', function () {
     ]);
 });
 
+// Unify
+$router->get('/unify/players', 'UnificationController@players');
+
 
 // For use on HelioHost, where we have no SSH to CLI
 // Can run artisan commands in this way
@@ -62,19 +68,19 @@ $router->get('/version', function () {
 // 	Artisan::call('key:generate');
 // });
 
-// $router->get('/migrate', function () {
-//     Artisan::call('migrate', array(
-// 		'--force' => true,
-// 		'--path' => 'database/migrations'
-// 	));
-// });
-
-$router->get('/update-index/{table}', function($table) {
-    $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
-    $newId = $latestId + 1;
-    $sequence = $table . "_id_seq";
-   
-    DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
-
-    echo "Updated ID to $newId";
+$router->get('/migrate', function () {
+    Artisan::call('migrate', array(
+		'--force' => true,
+		'--path' => 'database/migrations'
+	));
 });
+
+// $router->get('/update-index/{table}', function($table) {
+//     $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
+//     $newId = $latestId + 1;
+//     $sequence = $table . "_id_seq";
+   
+//     DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
+
+//     echo "Updated ID to $newId";
+// });

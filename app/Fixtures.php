@@ -37,4 +37,8 @@ class Fixtures extends Model
     public function away_player() {
         return $this->hasOne('App\Players', 'id', 'awayPlayerId');
     }
+
+    public function tournament() {
+        return $this->belongsTo('App\Tournaments', 'tournamentId', 'id');
+    }
 }
