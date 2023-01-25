@@ -40,10 +40,12 @@ class UnificationController extends Controller
                 ]);
                 $usersIndex[$name] = $result['id'];
             }
-            Players::where('id', $player->id)->update([
-                'userId' => $usersIndex[$name],
-                'tournamentId' => $tournamentId
-            ]);
+            if ($player->userId === 1) {
+                Players::where('id', $player->id)->update([
+                    'userId' => $usersIndex[$name],
+                    'tournamentId' => $tournamentId
+                ]);
+            }
         }
 
         return $users;
