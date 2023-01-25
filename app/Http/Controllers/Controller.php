@@ -257,7 +257,7 @@ class Controller extends BaseController
         extract($winLossDraw);
 
         // TODO: Division by 0 error if no matches!!
-        return round(100 / ($matches) * $win, 2);
+        return round(100 / ($played) * $win);
     }
 
     protected function calculateFixtureTotals($fixtures, $playerId) {
@@ -268,16 +268,29 @@ class Controller extends BaseController
 
             if($homePlayerScore > $awayPlayerScore) {
                 $isHome ? $carry['win']++ : $carry['loss']++;
+                $isHome ? $carry['points'] = $carry['points'] + 3 : null;
             } else if ($awayPlayerScore > $homePlayerScore) {
                 $isHome ? $carry['loss']++ : $carry['win']++;
+                !$isHome ? $carry['points'] = $carry['points'] + 3 : null;
             } else {
                 $carry['draw']++;
+                $carry['points']++;
             } 
+
+            if ($isHome) {
+                $carry['for'] = $carry['for'] + $homePlayerScore;
+                $carry['against'] = $carry['against'] + $awayPlayerScore;
+                $carry['gd'] = $carry['gd'] + ($homePlayerScore - $awayPlayerScore);
+            } else {
+                $carry['for'] = $carry['for'] + $awayPlayerScore;
+                $carry['against'] = $carry['against'] + $homePlayerScore;
+                $carry['gd'] = $carry['gd'] + ($awayPlayerScore - $homePlayerScore);
+            }
 
             $isHome ? $carry['for'] = $carry['for'] + $homePlayerScore : $carry['for'] = $carry['for'] + $awayPlayerScore;
             $isHome ? $carry['against'] = $carry['against'] + $awayPlayerScore : $carry['against'] = $carry['against'] + $homePlayerScore;
 
-            $carry['matches']++;
+            $carry['played']++;
 
             return $carry;
         },[
@@ -286,8 +299,15 @@ class Controller extends BaseController
             'draw' => 0,
             'for' => 0,
             'against' => 0,
-            'matches' => 0
+            'played' => 0,
+            'gd' => 0,
+            'points' => 0
         ]);
+    }
+
+    protected function calculateFurthestStage($fixtures, $playerId) 
+    {
+        return 'Last 16';
     }
 
     protected function calculateOutrightStats($fixtures, $players) {

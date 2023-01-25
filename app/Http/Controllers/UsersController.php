@@ -32,8 +32,23 @@ class UsersController extends Controller
             return $carry;
         }, []);
 
+        $tournaments = array_reduce($user->tournaments->toArray(), function ($carry, $tournament) use ($user) {
+            $players = $user->players->toArray();
+            $matchingPlayer = $players[array_search($tournament['id'], array_column($players, 'tournamentId'))];
+            $tournament['player'] = $matchingPlayer;
+            $totals = $this->calculateFixtureTotals($matchingPlayer['fixtures'], $matchingPlayer['id']);
+            $carry[$matchingPlayer['id']] = array_merge([
+                'name'  => $tournament['uid'],
+                'stage' => $this->calculateFurthestStage($matchingPlayer['fixtures'], $matchingPlayer['id']) 
+            ], $totals);
+            return $carry;
+        }, []);
+
         return [
-            "outrights" => array_merge([["title" => "Seasons", "value" => count($user->tournaments)]], $this->getFixtureStats($allFixtures, $id))
+            "name" => $user->name,
+            "outrights" => array_merge([["title" => "Seasons", "value" => count($user->tournaments)]], $this->getFixtureStats($allFixtures, $id)),
+            "seasons" => $tournaments,
+            'players' => $user->players
         ];
     }
 
@@ -43,8 +58,8 @@ class UsersController extends Controller
 
         return [
             [
-                "title" => "Matches",
-                "value" => $matches
+                "title" => "Played",
+                "value" => $played
             ],
             [
                 "title" => "Win %",
@@ -55,7 +70,7 @@ class UsersController extends Controller
                 "value" => $win
             ],
             [
-                'title' => "Loss",
+                'title' => "Lost",
                 "value" => $loss
             ],
             [
@@ -71,7 +86,7 @@ class UsersController extends Controller
                 'value' => $against
             ],
             [
-                'title' => "P/D",
+                'title' => "PD",
                 'value' => $for - $against
             ],
         ];
