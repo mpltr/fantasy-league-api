@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Fixtures;
 use Illuminate\Http\Request;
 use App\Players;
 use App\Users;
@@ -26,7 +27,7 @@ class UnificationController extends Controller
         $players = Players::all();
         $users   = Users::all()->toArray();
 
-        $usersIndex = array_reduce($users, function ($carry, $user){
+        $usersIndex = array_reduce($users, function ($carry, $user) {
             $carry[$user['name']] = $user['id'];
             return $carry;
         }, []);
@@ -34,7 +35,7 @@ class UnificationController extends Controller
             $name = $player->name;
             $firstFixture = $player->fixtures()->first();
             $tournamentId = $firstFixture->tournamentId;
-            if (!array_key_exists($name, $usersIndex)){
+            if (!array_key_exists($name, $usersIndex)) {
                 $result = Users::create([
                     'name' => $name
                 ]);
@@ -49,5 +50,28 @@ class UnificationController extends Controller
         }
 
         return $users;
+    }
+
+    public function fixtures(Request $request)
+    {
+        $players = Players::orderBy('id')->get()->keyBy('id');
+        $fixtures = Fixtures::all()->toArray();
+
+        $newFixtures = [];
+
+        foreach ($fixtures as $fixture) {
+            $id = $fixture['id'];
+            $newHomePlayerId = $players[$fixture['homePlayerId']]['userId'];
+            $newAwayPlayerId = $players[$fixture['awayPlayerId']]['userId'];
+
+            $fixture['homePlayerId'] = $newHomePlayerId;
+            $fixture['awayPlayerId'] = $newAwayPlayerId;
+
+            $newFixtures[] = $fixture;
+
+            Fixtures::where('id', $id)->update($fixture);
+        }
+
+        return $newFixtures;
     }
 }

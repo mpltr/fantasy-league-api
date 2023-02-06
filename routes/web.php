@@ -57,6 +57,7 @@ $router->get('/version', function () {
 
 // Unify
 $router->get('/unify/players', 'UnificationController@players');
+$router->get('/unify/fixtures', 'UnificationController@fixtures');
 
 
 // For use on HelioHost, where we have no SSH to CLI
@@ -72,16 +73,16 @@ $router->get('/unify/players', 'UnificationController@players');
 
 $router->get('/migrate', function () {
     Artisan::call('migrate', array(
-		'--force' => true,
-		'--path' => 'database/migrations'
-	));
+        '--force' => true,
+        '--path' => 'database/migrations'
+    ));
 });
 
-$router->get('/update-index/{table}', function($table) {
+$router->get('/update-index/{table}', function ($table) {
     $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
     $newId = $latestId + 1;
     $sequence = $table . "_id_seq";
-   
+
     DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
 
     echo "Updated ID to $newId";
