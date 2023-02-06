@@ -10,7 +10,7 @@ class UsersController extends Controller
 {
     public function __construct()
     {
-        //
+        // nothing required
     }
 
     public function index()
@@ -24,9 +24,21 @@ class UsersController extends Controller
     {
 
         $user = Users::where('id', $id)
-                    ->with('tournaments', 'players', 'players.fixtures')
-                    ->first();
-                    
+            ->with('tournaments')
+            ->with('tournaments.fixtures',)
+            // ->with('tournaments')
+            // ->with('tournaments.players.fixtures', function ($query) use ($id) {
+            //     $query->where('players.userId', '=', $id);
+            // })
+            // ->with('tournaments.players.fixtures')
+            // ->with('tournaments.players.fixtures', function ($query) use ($id) {
+            //     $query->where('fixtures.homePlayerId', '=', '')
+            //         ->orWhere('fixtures.awayPlayerId', '=', $id);
+            // })
+            ->first();
+
+        return $user;
+
         $allFixtures = array_reduce($user->players->toArray(), function ($carry, $player) {
             $carry = array_merge($carry, $player['fixtures']);
             return $carry;
@@ -39,21 +51,26 @@ class UsersController extends Controller
             $totals = $this->calculateFixtureTotals($matchingPlayer['fixtures'], $matchingPlayer['id']);
             $carry[$matchingPlayer['id']] = array_merge([
                 'name'  => $tournament['uid'],
-                'stage' => $this->calculateFurthestStage($matchingPlayer['fixtures'], $matchingPlayer['id']) 
+                'stage' => $this->calculateFurthestStage($matchingPlayer['fixtures'], $matchingPlayer['id'])
             ], $totals);
             return $carry;
         }, []);
 
         return [
             "name" => $user->name,
-            "outrights" => array_merge([["title" => "Seasons", "value" => count($user->tournaments)]], $this->getFixtureStats($allFixtures, $id)),
+            "outrights" => array_merge(
+                [
+                    ["title" => "Seasons", "value" => count($user->tournaments)]
+                ],
+                $this->getFixtureStats($allFixtures, $id)
+            ),
             "seasons" => $tournaments,
             'players' => $user->players
         ];
     }
 
     private function getFixtureStats($fixtures, $playerId)
-    {   
+    {
         extract($this->calculateFixtureTotals($fixtures, $playerId));
 
         return [

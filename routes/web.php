@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Artisan;
 use App\Tournaments;
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    echo $router->app->version();
+    // echo phpinfo();
+    return null;
 });
 
 // tournament
@@ -75,12 +77,12 @@ $router->get('/migrate', function () {
 	));
 });
 
-// $router->get('/update-index/{table}', function($table) {
-//     $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
-//     $newId = $latestId + 1;
-//     $sequence = $table . "_id_seq";
+$router->get('/update-index/{table}', function($table) {
+    $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
+    $newId = $latestId + 1;
+    $sequence = $table . "_id_seq";
    
-//     DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
+    DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
 
-//     echo "Updated ID to $newId";
-// });
+    echo "Updated ID to $newId";
+});
