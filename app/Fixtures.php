@@ -13,7 +13,7 @@ class Fixtures extends Model
      */
     protected $fillable = [
         'tournamentId',
-        'homePlayerId', 
+        'homePlayerId',
         'homePlayerScore',
         'awayPlayerId',
         'awayPlayerScore',
@@ -27,18 +27,20 @@ class Fixtures extends Model
      *
      * @var array
      */
-    protected $hidden = [
-    ];
+    protected $hidden = [];
 
-    public function home_player() {
-        return $this->hasOne('App\Players', 'id', 'homePlayerId');
+    public function home_player()
+    {
+        return $this->hasOne('App\Users', 'id', 'homePlayerId');
     }
 
-    public function away_player() {
-        return $this->hasOne('App\Players', 'id', 'awayPlayerId');
+    public function away_player()
+    {
+        return $this->hasOne('App\Users', 'id', 'awayPlayerId');
     }
 
-    public function tournament() {
+    public function tournament()
+    {
         return $this->belongsTo('App\Tournaments', 'tournamentId', 'id');
     }
 }

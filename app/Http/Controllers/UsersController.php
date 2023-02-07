@@ -25,17 +25,22 @@ class UsersController extends Controller
 
         $user = Users::where('id', $id)
             ->with('tournaments')
-            ->with('tournaments.fixtures', function ($q) use ($id) {
-                $q->where('homePlayerId', '=', $id)
+            ->with('tournaments.players', function ($playersQ) use ($id) {
+                $playersQ->where('userId', '=', $id);
+            })
+            ->with('tournaments.fixtures', function ($fixturesQ) use ($id) {
+                $fixturesQ->where('homePlayerId', '=', $id)
                     ->orWhere('awayPlayerId', '=', $id)
                     ->with('home_player', 'away_player');
             })
             ->first();
 
+
         // Outrights
         $allFixtures = array_reduce($user->tournaments->toArray(), function ($carry, $tournament) {
             return array_merge($carry, $tournament['fixtures']);
         }, []);
+
         $user['outrights'] = array_merge(
             [
                 ["title" => "Seasons", "value" => count($user->tournaments)]

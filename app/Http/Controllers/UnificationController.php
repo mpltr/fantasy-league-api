@@ -13,8 +13,6 @@ use App\Users;
  * Also adds additional row values to existing tables.
  *
  */
-
-
 class UnificationController extends Controller
 {
     public function __construct()
