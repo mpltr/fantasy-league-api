@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Tournaments;
 use App\Players;
 use App\Fixtures;
+use App\Users;
 
 class TournamentController extends Controller
 {
@@ -23,23 +24,23 @@ class TournamentController extends Controller
             $args = json_decode($data, true);
             $expectedArgs = [
                 'tournamentName',
-                'numberOfPlayers',
                 'numberOfGroups',
+                'numberOfPlayers',
                 'startDate',
                 'numberOfPvpFixtures',
                 'weeksBetweenFixtures',
                 'numberOfKnockoutRounds',
-                'newPlayers'
+                'tournamentPlayers'
             ];
             // verify and map args to vars
             foreach ($expectedArgs as $expectedArg) {
-                if (!empty($args[$expectedArg])) {
-                    $$expectedArg = $args[$expectedArg];
-                } else {
+                if (empty($args[$expectedArg])) {
                     // ERROR RESPONSE: MISSING ARG
                     return $this->error("Missing $expectedArg Argument", 422);
                 }
             }
+
+            extract($args);
 
             // TOURNAMENT
             // create new tournament entry
@@ -72,17 +73,32 @@ class TournamentController extends Controller
             // get tournamentId
             $tournamentId = $tournamentResult['id'];
 
-            // PLAYERS
-            foreach ($newPlayers as $player) {
-                // verify player
-                if (empty($player['name'])) return $this->error("1 or more players are missing data", 422);
-                // create new player entry
-                $playerEntries[] = Players::create([
-                    'name'         => $player['name'],
-                    'fplLink'      => $player['fplLink'] ?? 'default',
-                    'seed'         => $player['seed'] ?? null,
-                    'userId'       => 1,
-                ]);
+            // USERS & PLAYERS
+            $playerEntries = [];
+
+            foreach ($tournamentPlayers as $seedGroup => $players) {
+                foreach ($players as $player) {
+                    $isNew = array_key_exists('__isNew__', $player) && $player['__isNew__'];
+                    $user = null;
+                    if (!$isNew) {
+                        $user = [
+                            'id'   => $player['value'],
+                            'name' => $player['label']
+                        ];
+                    } else {
+                        $user = Users::create([
+                            'name'         => $player['label']
+                        ]);
+                    }
+
+                    $playerEntries[] = Players::create([
+                        'name'         => $player['label'],
+                        'fplLink'      => $player['fplLink'] ?? 'default',
+                        'seed'         => $seedGroup,
+                        'userId'       => $user['id'],
+                        'tournamentId' => $tournamentId
+                    ]);
+                }
             }
 
             // FIXTURES
@@ -142,9 +158,7 @@ class TournamentController extends Controller
 
     public function index()
     {
-        $data = Tournaments::orderByDesc('startDate')->get();
-
-        return $data;
+        return Tournaments::orderByDesc('startDate')->get();
     }
 
     // HELPERS //
@@ -164,15 +178,17 @@ class TournamentController extends Controller
 
         // split into seedings
         $seeded = [];
-        foreach ($players as $player) $seeded[$player['seed']][] = $player;
+        foreach ($players as $player) {
+            $seeded[$player['seed']][] = $player;
+        }
 
         // seperate into groups
         $groups = [];
-        $group_index = 0;
+        $groupIndex = 0;
         foreach ($seeded as $seed_group) {
             foreach ($seed_group as $player) {
-                $groups[$group_index][] = $player;
-                $group_index = $group_index === ($numberOfGroups - 1) ? 0 : $group_index + 1;
+                $groups[$groupIndex][] = $player;
+                $groupIndex = $groupIndex === ($numberOfGroups - 1) ? 0 : $groupIndex + 1;
             }
         }
 
@@ -218,20 +234,20 @@ class TournamentController extends Controller
             $insight[] = $players;
             $weekOffset = $i * $weeksBetweenFixtures;
             $fixtureDate = date('Y/m/d', strtotime("$startDate +$weekOffset weeks"));
-            $weeksFixtures = [];
+            // $weeksFixtures = [];
             for ($k = 0; $k < $breakPoint; $k++) {
                 $player1 = $players[$k];
                 $player2 = $players[count($players) - 1 - $k];
                 if ($player2['name'] !== "dummy" && $player1['name'] !== "dummy") {
                     $fixtures[] = [
                         'tournamentId' => $tournamentId,
-                        'homePlayerId' => $player1['id'],
-                        'awayPlayerId' => $player2['id'],
+                        'homePlayerId' => $player1['userId'],
+                        'awayPlayerId' => $player2['userId'],
                         'group'        => $groupLetter,
                         'date'         => $fixtureDate
                     ];
                     // used for knockouts
-                    $this->dateOfLastFixture = $fixtureDate;
+                    // $this->dateOfLastFixture = $fixtureDate;
                 }
             }
             $players[] = array_splice($players, 1, 1)[0];

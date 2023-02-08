@@ -26,16 +26,16 @@ class UnificationController extends Controller
         $users   = Users::all()->toArray();
 
         $usersIndex = array_reduce($users, function ($carry, $user) {
-            $carry[$user['name']] = $user['id'];
+            $carry[$this->slugify($user['name'])] = $user['id'];
             return $carry;
         }, []);
         foreach ($players as $player) {
-            $name = $player->name;
+            $name = $this->slugify($player->name);
             $firstFixture = $player->fixtures()->first();
             $tournamentId = $firstFixture->tournamentId;
             if (!array_key_exists($name, $usersIndex)) {
                 $result = Users::create([
-                    'name' => $name
+                    'name' => $player->name
                 ]);
                 $usersIndex[$name] = $result['id'];
             }

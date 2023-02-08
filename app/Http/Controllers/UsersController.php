@@ -15,9 +15,7 @@ class UsersController extends Controller
 
     public function index()
     {
-        $data = Users::all();
-
-        return $data;
+        return Users::orderBy('name')->get();
     }
 
     public function show($id)

@@ -56,6 +56,9 @@ $router->get('/version', function () {
 });
 
 // Unify
+$router->get('/unify/check-env', function () {
+    return getenv();
+});
 $router->get('/unify/players', 'UnificationController@players');
 $router->get('/unify/fixtures', 'UnificationController@fixtures');
 
