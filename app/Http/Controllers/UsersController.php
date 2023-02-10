@@ -20,7 +20,6 @@ class UsersController extends Controller
 
     public function show($id)
     {
-
         $user = Users::where('id', $id)
             ->with('tournaments')
             ->with('tournaments.players', function ($playersQ) use ($id) {

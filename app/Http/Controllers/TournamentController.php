@@ -86,9 +86,11 @@ class TournamentController extends Controller
                             'name' => $player['label']
                         ];
                     } else {
-                        $user = Users::create([
-                            'name'         => $player['label']
-                        ]);
+                        if (!Users::where('name', '=', $player['label'])->exists()) {
+                            $user = Users::create([
+                                'name'         => $player['label']
+                            ]);
+                        }
                     }
 
                     $playerEntries[] = Players::create([
@@ -131,17 +133,17 @@ class TournamentController extends Controller
             ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player', 'messages')
             ->first();
 
-        $original_fixtures = $data['fixtures']->toArray();
+        $originalFixtures = $data['fixtures']->toArray();
 
-        $players  = $this->extractPlayersFromFixtures($original_fixtures);
+        $players  = $this->extractPlayersFromFixtures($originalFixtures);
 
-        $fixtures = $this->sortFixturesIntoGroups($original_fixtures, $players);
+        $fixtures = $this->sortFixturesIntoGroups($originalFixtures, $players);
 
-        $playersWithStats = $this->calculaterPlayerStats($players, $original_fixtures);
+        $playersWithStats = $this->calculaterPlayerStats($players, $originalFixtures);
 
         $tables = $this->assignPlayersToTables($fixtures);
 
-        $outrightStats = $this->calculateOutrightStats($original_fixtures, $players);
+        $outrightStats = $this->calculateOutrightStats($originalFixtures, $players);
 
         return [
             'id'                           => $data['id'],
