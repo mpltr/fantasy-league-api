@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Tournaments;
 use App\Players;
 use App\Fixtures;
+use App\Users;
 
 class TournamentController extends Controller
 {
@@ -14,32 +15,33 @@ class TournamentController extends Controller
         //
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $data = $request->input('data');
 
-        if(!empty($data)) {
+        if (!empty($data)) {
             // decode actual args are specify expected args
             $args = json_decode($data, true);
             $expectedArgs = [
                 'tournamentName',
-                'numberOfPlayers',
                 'numberOfGroups',
+                'numberOfPlayers',
                 'startDate',
                 'numberOfPvpFixtures',
                 'weeksBetweenFixtures',
                 'numberOfKnockoutRounds',
-                'newPlayers'
+                'tournamentPlayers'
             ];
             // verify and map args to vars
-            foreach($expectedArgs as $expectedArg) {
-                if(!empty($args[$expectedArg])) {
-                    $$expectedArg = $args[$expectedArg];
-                } else {
+            foreach ($expectedArgs as $expectedArg) {
+                if (empty($args[$expectedArg])) {
                     // ERROR RESPONSE: MISSING ARG
                     return $this->error("Missing $expectedArg Argument", 422);
                 }
             }
-           
+
+            extract($args);
+
             // TOURNAMENT
             // create new tournament entry
             $numberOfKnockoutFixturesMap = [
@@ -71,29 +73,48 @@ class TournamentController extends Controller
             // get tournamentId
             $tournamentId = $tournamentResult['id'];
 
-            // PLAYERS
-            foreach($newPlayers as $player) {
-                // verify player
-                if(empty($player['name'])) return $this->error("1 or more players are missing data", 422);
-                // create new player entry
-                $playerEntries[] = Players::create([
-                    'name'         => $player['name'],
-                    'fplLink'      => $player['fplLink'] ?? 'default',
-                    'seed'         => $player['seed'] ?? null,
-                    'userId'       => 1,
-                ]);
+            // USERS & PLAYERS
+            $playerEntries = [];
+
+            foreach ($tournamentPlayers as $seedGroup => $players) {
+                foreach ($players as $player) {
+                    $isNew = array_key_exists('__isNew__', $player) && $player['__isNew__'];
+                    $user = null;
+                    if (!$isNew) {
+                        $user = [
+                            'id'   => $player['value'],
+                            'name' => $player['label']
+                        ];
+                    } else {
+                        if (!Users::where('name', '=', $player['label'])->exists()) {
+                            $user = Users::create([
+                                'name'         => $player['label']
+                            ]);
+                        }
+                    }
+
+                    $playerEntries[] = Players::create([
+                        'name'         => $player['label'],
+                        'fplLink'      => $player['fplLink'] ?? 'default',
+                        'seed'         => $seedGroup,
+                        'userId'       => $user['id'],
+                        'tournamentId' => $tournamentId
+                    ]);
+                }
             }
 
             // FIXTURES
             // get the fixture rows
-            $fixtures = $this->getFixtureRows($playerEntries, 
-                                              $numberOfGroups, 
-                                              $startDate, 
-                                              $weeksBetweenFixtures, 
-                                              $numberOfPvpFixtures, 
-                                              $tournamentId);
-                                              
-            foreach($fixtures as $fixture) {
+            $fixtures = $this->getFixtureRows(
+                $playerEntries,
+                $numberOfGroups,
+                $startDate,
+                $weeksBetweenFixtures,
+                $numberOfPvpFixtures,
+                $tournamentId
+            );
+
+            foreach ($fixtures as $fixture) {
                 // create new fixture row
                 Fixtures::create($fixture);
             }
@@ -105,21 +126,24 @@ class TournamentController extends Controller
         return $this->error("No Data Provided", 422);
     }
 
-    public function show($uid) {
+    public function show($uid)
+    {
 
-        $data = Tournaments::where('uid', $uid)->with('fixtures', 'fixtures.home_player', 'fixtures.away_player', 'messages')->first();
+        $data = Tournaments::where('uid', $uid)
+            ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player', 'messages')
+            ->first();
 
-        $original_fixtures = $data['fixtures']->toArray();
-        
-        $players  = $this->extractPlayersFromFixtures($original_fixtures);
-        
-        $fixtures = $this->sortFixturesIntoGroups($original_fixtures, $players);
+        $originalFixtures = $data['fixtures']->toArray();
 
-        $playersWithStats = $this->calculaterPlayerStats($players, $original_fixtures);
+        $players  = $this->extractPlayersFromFixtures($originalFixtures);
+
+        $fixtures = $this->sortFixturesIntoGroups($originalFixtures, $players);
+
+        $playersWithStats = $this->calculaterPlayerStats($players, $originalFixtures);
 
         $tables = $this->assignPlayersToTables($fixtures);
 
-        $outrightStats = $this->calculateOutrightStats($original_fixtures, $players);
+        $outrightStats = $this->calculateOutrightStats($originalFixtures, $players);
 
         return [
             'id'                           => $data['id'],
@@ -134,68 +158,73 @@ class TournamentController extends Controller
         ];
     }
 
-    public function index() {
-        $data = Tournaments::all();
-
-        // return 'Hello';
-
-        return $data;
+    public function index()
+    {
+        return Tournaments::orderByDesc('startDate')->get();
     }
 
     // HELPERS //
-    private function getFixtureRows($players, 
-                                    $numberOfGroups, 
-                                    $startDate, 
-                                    $weeksBetweenFixtures, 
-                                    $numberOfPvpFixtures,
-                                    $tournamentId) {
+    private function getFixtureRows(
+        $players,
+        $numberOfGroups,
+        $startDate,
+        $weeksBetweenFixtures,
+        $numberOfPvpFixtures,
+        $tournamentId
+    ) {
         // TODO: allow no seeding. New algorithm only allows seeded players
 
 
         // randomise the players
         shuffle($players);
-       
+
         // split into seedings
         $seeded = [];
-        foreach($players as $player) $seeded[$player['seed']][] = $player; 
+        foreach ($players as $player) {
+            $seeded[$player['seed']][] = $player;
+        }
 
         // seperate into groups
         $groups = [];
-        $group_index = 0;
-        foreach($seeded as $seed_group) {
-            foreach($seed_group as $player) {
-                $groups[$group_index][] = $player;
-                $group_index = $group_index === ($numberOfGroups - 1) ? 0 : $group_index + 1;
+        $groupIndex = 0;
+        foreach ($seeded as $seed_group) {
+            foreach ($seed_group as $player) {
+                $groups[$groupIndex][] = $player;
+                $groupIndex = $groupIndex === ($numberOfGroups - 1) ? 0 : $groupIndex + 1;
             }
         }
 
         // get and return fixtures for groups
         $fixtures = [];
         $index = 0;
-        foreach($groups as $group) {
+        foreach ($groups as $group) {
             $groupLetter = chr(64 + $index + 1);
-            $groupFixtures =  $this->calculateFixtures($group, 
-                                                       $numberOfPvpFixtures,
-                                                       $weeksBetweenFixtures, 
-                                                       $startDate, 
-                                                       $groupLetter, 
-                                                       $tournamentId);
+            $groupFixtures =  $this->calculateFixtures(
+                $group,
+                $numberOfPvpFixtures,
+                $weeksBetweenFixtures,
+                $startDate,
+                $groupLetter,
+                $tournamentId
+            );
             // return $groupFixtures;
             $fixtures = array_merge($fixtures, $groupFixtures);
             $index++;
-        }  
-        return $fixtures;                               
+        }
+        return $fixtures;
     }
 
-    private function calculateFixtures($players, 
-                                       $numberOfPvpFixtures, 
-                                       $weeksBetweenFixtures, 
-                                       $startDate, 
-                                       $groupLetter, 
-                                       $tournamentId) {
+    private function calculateFixtures(
+        $players,
+        $numberOfPvpFixtures,
+        $weeksBetweenFixtures,
+        $startDate,
+        $groupLetter,
+        $tournamentId
+    ) {
         $originalNumberOfPlayers = count($players);
         // calculate number of match weeks
-        if($originalNumberOfPlayers % 2 === 1) {
+        if ($originalNumberOfPlayers % 2 === 1) {
             // add a dummy player to keep algorithm balanced
             $players[] = ['name' => 'dummy'];
         }
@@ -203,24 +232,24 @@ class TournamentController extends Controller
         $matchWeeks = ($numberOfPlayers - 1) * $numberOfPvpFixtures;
         $breakPoint = count($players) / 2;
         // $fixtures = [];
-        for($i = 0; $i < $matchWeeks; $i++) {
+        for ($i = 0; $i < $matchWeeks; $i++) {
             $insight[] = $players;
             $weekOffset = $i * $weeksBetweenFixtures;
             $fixtureDate = date('Y/m/d', strtotime("$startDate +$weekOffset weeks"));
-            $weeksFixtures = [];
-            for($k = 0; $k < $breakPoint; $k++) {
+            // $weeksFixtures = [];
+            for ($k = 0; $k < $breakPoint; $k++) {
                 $player1 = $players[$k];
                 $player2 = $players[count($players) - 1 - $k];
-                if($player2['name'] !== "dummy" && $player1['name'] !== "dummy"){
+                if ($player2['name'] !== "dummy" && $player1['name'] !== "dummy") {
                     $fixtures[] = [
                         'tournamentId' => $tournamentId,
-                        'homePlayerId' => $player1['id'],
-                        'awayPlayerId' => $player2['id'],
+                        'homePlayerId' => $player1['userId'],
+                        'awayPlayerId' => $player2['userId'],
                         'group'        => $groupLetter,
                         'date'         => $fixtureDate
                     ];
                     // used for knockouts
-                    $this->dateOfLastFixture = $fixtureDate;
+                    // $this->dateOfLastFixture = $fixtureDate;
                 }
             }
             $players[] = array_splice($players, 1, 1)[0];
@@ -228,14 +257,15 @@ class TournamentController extends Controller
         return $fixtures;
     }
 
-    public function revertStage($uid) {
+    public function revertStage($uid)
+    {
         // get the current stage
         $tournament = Tournaments::where('uid', $uid)->select('uid', 'id', 'stage')->first();
         $stage = $tournament['stage'];
         $id = $tournament['id'];
 
         // skip if group
-        if($stage === 'Group') {
+        if ($stage === 'Group') {
             return response([
                 'status'  => false,
                 'error' => 'Cannot revert a tournament when in Group Stage'
@@ -255,6 +285,5 @@ class TournamentController extends Controller
             'status' => true,
             'message' => "Tournament successfully reverted to $lastStage stage"
         ]);
-
     }
 }

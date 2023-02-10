@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Artisan;
 use App\Tournaments;
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    echo $router->app->version();
+    // echo phpinfo();
+    return null;
 });
 
 // tournament
@@ -54,7 +56,11 @@ $router->get('/version', function () {
 });
 
 // Unify
+$router->get('/unify/check-env', function () {
+    return getenv();
+});
 $router->get('/unify/players', 'UnificationController@players');
+$router->get('/unify/fixtures', 'UnificationController@fixtures');
 
 
 // For use on HelioHost, where we have no SSH to CLI
@@ -70,17 +76,17 @@ $router->get('/unify/players', 'UnificationController@players');
 
 $router->get('/migrate', function () {
     Artisan::call('migrate', array(
-		'--force' => true,
-		'--path' => 'database/migrations'
-	));
+        '--force' => true,
+        '--path' => 'database/migrations'
+    ));
 });
 
-// $router->get('/update-index/{table}', function($table) {
-//     $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
-//     $newId = $latestId + 1;
-//     $sequence = $table . "_id_seq";
-   
-//     DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
+$router->get('/update-index/{table}', function ($table) {
+    $latestId = DB::table($table)->orderBy('id', 'DESC')->first()->id;
+    $newId = $latestId + 1;
+    $sequence = $table . "_id_seq";
 
-//     echo "Updated ID to $newId";
-// });
+    DB::statement("ALTER SEQUENCE $sequence RESTART WITH $newId");
+
+    echo "Updated ID to $newId";
+});

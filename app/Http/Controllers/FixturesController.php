@@ -16,74 +16,78 @@ class FixturesController extends Controller
     public function store(Request $request)
     {
         $data = $request->input('data');
-        // return $data;
         if (!empty($data)) {
             $args = json_decode($data, true);
             $dates = $args['fixtures'];
             $id = $args['id'];
-            $totalFixtures = 0;
+            $currentFixtures = Fixtures::where('tournamentId', '=', $id)->get()->keyBy('id');
+            $totalFixtures = $currentFixtures->count();
             $fixturesWithScores = 0;
             foreach ($dates as $date => $fixtures) {
                 foreach ($fixtures as $fixture) {
                     $totalFixtures++;
                     $homePlayerScore = $fixture['homePlayerScore'] ? $fixture['homePlayerScore'] : null;
                     $awayPlayerScore = $fixture['awayPlayerScore'] ? $fixture['awayPlayerScore'] : null;
-                    if (($homePlayerScore || $homePlayerScore === 0) && ($awayPlayerScore || $homePlayerScore === 0)) {
-                        $fixturesWithScores++;
-                    };
-                    $fixtureUpdates[] = Fixtures::where('id', $fixture['id'])->update(
-                        [
-                            'homePlayerScore' => $homePlayerScore,
-                            'awayPlayerScore' => $awayPlayerScore,
-                            'date' => $date
-                        ]
-                    );
+                    // if (($homePlayerScore || $homePlayerScore === 0) && ($awayPlayerScore || $homePlayerScore === 0)) {
+                    //     $fixturesWithScores++;
+                    // };
+                    $currentFixture = $currentFixtures[$fixture['id']];
+                    if (
+                        $currentFixture['date'] !== $date
+                        || $currentFixture['homePlayerScore'] !== $homePlayerScore
+                        || $currentFixture['awayPlayerScore'] !== $awayPlayerScore
+                    ) {
+                        $fixtureUpdates[] = Fixtures::where('id', $fixture['id'])->update(
+                            [
+                                'homePlayerScore' => $homePlayerScore,
+                                'awayPlayerScore' => $awayPlayerScore,
+                                'date' => $date
+                            ]
+                        );
+                    }
+                    $fixtureUpdates[] = 1;
                 }
             }
-            $success = count($fixtureUpdates) == $totalFixtures;
 
             // generate next fixtures if all are complete
-            if ($success && $fixturesWithScores == $totalFixtures) {
-                $tournament = Tournaments::where('id', $id)
-                    ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')
-                    ->first();
-                $current_stage = $tournament['stage'] ?? null;
+            // if ($fixturesWithScores == $totalFixtures) {
+            //     $tournament = Tournaments::where('id', $id)
+            //         ->with('fixtures', 'fixtures.home_player', 'fixtures.away_player')
+            //         ->first();
+            //     $current_stage = $tournament['stage'] ?? null;
 
-                if ($current_stage && $current_stage) {
-                    if ($current_stage === 'Group') {
-                        $newFixtures = $this->createFixturesForFirstKnockoutRound($tournament);
-                    } elseif (!in_array($current_stage, ['Final', 'Finished'])) {
-                        $newFixtures = $this->getFixturesForNextKnockoutRound($tournament);
-                    }
+            //     if ($current_stage && $current_stage) {
+            //         if ($current_stage === 'Group') {
+            //             $newFixtures = $this->createFixturesForFirstKnockoutRound($tournament);
+            //         } elseif (!in_array($current_stage, ['Final', 'Finished'])) {
+            //             $newFixtures = $this->getFixturesForNextKnockoutRound($tournament);
+            //         }
 
-                    if (!empty($newFixtures)) {
-                        foreach ($newFixtures as $fixture) {
-                            // create new fixture rows
-                            Fixtures::create($fixture);
-                        }
-                        $message = "Fixtures Updated and New Fixtures Generated for " . $this->getNextStage($current_stage);
-                    }
+            //         if (!empty($newFixtures)) {
+            //             foreach ($newFixtures as $fixture) {
+            //                 // create new fixture rows
+            //                 Fixtures::create($fixture);
+            //             }
+            //             $message = "Fixtures Updated and New Fixtures Generated for " . $this->getNextStage($current_stage);
+            //         }
 
-                    $this->setNextTournamentStage($id, $current_stage);
+            //         $this->setNextTournamentStage($id, $current_stage);
 
-                    if ($success) {
-                        return response([
-                            'status' => true,
-                            'message' => $message ?? 'Fixtures Updated and Tournament Complete!',
-                        ], 200);
-                    } else {
-                        return $this->error("One or more fixures failed to update", 422);
-                    }
-                }
-            }
-            if ($success) {
-                return response([
-                    'status' => true,
-                    'message' => 'Fixtures Updated',
-                ], 200);
-            } else {
-                return $this->error("One or more fixures failed to update", 422);
-            }
+            //         if ($success) {
+            //             return response([
+            //                 'status' => true,
+            //                 'message' => $message ?? 'Fixtures Updated and Tournament Complete!',
+            //             ], 200);
+            //         } else {
+            //             return $this->error("One or more fixures failed to update", 422);
+            //         }
+            //     }
+            // }
+
+            return response([
+                'status' => true,
+                'message' => 'Fixtures Updated',
+            ], 200);
         }
         // ERROR RESPONSE: NO DATA
         return $this->error("No Data Provided", 422);

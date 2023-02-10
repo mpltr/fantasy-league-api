@@ -72,5 +72,3 @@ class MigrateController extends Controller
     //     return response($result);
     // }
 }
-
-?>

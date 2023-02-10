@@ -12,10 +12,10 @@ class Tournaments extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 
+        'id',
         'uid',
         'tournamentName',
-        'numberOfPlayers', 
+        'numberOfPlayers',
         'numberOfGroups',
         'numberOfPvpFixtures',
         'weeksBetweenFixtures',
@@ -30,18 +30,20 @@ class Tournaments extends Model
      *
      * @var array
      */
-    protected $hidden = [
-    ];
+    protected $hidden = [];
 
-    public function fixtures() {
+    public function fixtures()
+    {
         return $this->hasMany('App\Fixtures', 'tournamentId', 'id')->orderBy('date');
     }
 
-    public function messages() {
+    public function messages()
+    {
         return $this->hasMany('App\Messages', 'tournamentId', 'id');
     }
 
-    public function players() {
+    public function players()
+    {
         return $this->hasMany('App\Players', 'tournamentId');
     }
 }
