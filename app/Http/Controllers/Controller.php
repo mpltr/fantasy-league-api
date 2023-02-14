@@ -71,7 +71,7 @@ class Controller extends BaseController
     public function calculaterPlayerStats($players, $fixtures)
     {
         return array_map(function ($player) use ($fixtures) {
-            return array_merge($player, $this->calculateFixtureTotals($fixtures, $player['id']));
+            return array_merge($player, $this->calculateFixtureTotals($fixtures, $player['id'], ['A', 'B', 'C', 'D']));
         }, $players);
     }
 
@@ -220,66 +220,76 @@ class Controller extends BaseController
         return $played ? round(100 / ($played) * $win) : 0;
     }
 
-    protected function calculateFixtureTotals($fixtures, $playerId)
+    protected function calculateFixtureTotals($fixtures, $playerId, $stages = null)
     {
-        return array_reduce($this->filterPlayedFixtures($fixtures), function ($carry, $fixture) use ($playerId) {
-            if ($fixture['homePlayerId'] == $playerId || $fixture['awayPlayerId'] == $playerId) {
-                $isHome = $playerId === $fixture['homePlayerId'];
-                extract($fixture);
+        return array_reduce(
+            $this->filterPlayedFixtures($fixtures),
+            function ($carry, $fixture)
+            use ($playerId, $stages) {
+                if ($fixture['homePlayerId'] == $playerId || $fixture['awayPlayerId'] == $playerId) {
+                    if (!$stages || in_array($fixture['group'], $stages)) {
 
-                if ($homePlayerScore > $awayPlayerScore) {
-                    if ($isHome) {
-                        $carry['win']++;
-                        $carry['points'] = $carry['points'] + 3;
-                        $carry['form'][] = 3;
-                        $carry['formPoints'] = $carry['formPoints'] + 3;
-                    } else {
-                        $carry['loss']++;
-                        $carry['form'][] = 0;
+
+                        $isHome = $playerId === $fixture['homePlayerId'];
+                        extract($fixture);
+
+                        if ($homePlayerScore > $awayPlayerScore) {
+                            if ($isHome) {
+                                $carry['win']++;
+                                $carry['points'] = $carry['points'] + 3;
+                                $carry['form'][] = 3;
+                                $carry['formPoints'] = $carry['formPoints'] + 3;
+                            } else {
+                                $carry['loss']++;
+                                $carry['form'][] = 0;
+                            }
+                        } elseif ($awayPlayerScore > $homePlayerScore) {
+                            if ($isHome) {
+                                $carry['loss']++;
+                                $carry['form'][] = 0;
+                            } else {
+                                $carry['win']++;
+                                $carry['points'] = $carry['points'] + 3;
+                                $carry['form'][] = 3;
+                                $carry['formPoints'] = $carry['formPoints'] + 3;
+                            }
+                        } else {
+                            $carry['draw']++;
+                            $carry['points']++;
+                            $carry['form'][] = 1;
+                            $carry['formPoints']++;
+                        }
+
+                        if ($isHome) {
+                            $carry['for'] = $carry['for'] + $homePlayerScore;
+                            $carry['against'] = $carry['against'] + $awayPlayerScore;
+                            $carry['gd'] = $carry['gd'] + ($homePlayerScore - $awayPlayerScore);
+                        } else {
+                            $carry['for'] = $carry['for'] + $awayPlayerScore;
+                            $carry['against'] = $carry['against'] + $homePlayerScore;
+                            $carry['gd'] = $carry['gd'] + ($awayPlayerScore - $homePlayerScore);
+                        }
+
+
+                        $carry['played']++;
                     }
-                } elseif ($awayPlayerScore > $homePlayerScore) {
-                    if ($isHome) {
-                        $carry['loss']++;
-                        $carry['form'][] = 0;
-                    } else {
-                        $carry['win']++;
-                        $carry['points'] = $carry['points'] + 3;
-                        $carry['form'][] = 3;
-                        $carry['formPoints'] = $carry['formPoints'] + 3;
-                    }
-                } else {
-                    $carry['draw']++;
-                    $carry['points']++;
-                    $carry['form'][] = 1;
-                    $carry['formPoints']++;
                 }
 
-                if ($isHome) {
-                    $carry['for'] = $carry['for'] + $homePlayerScore;
-                    $carry['against'] = $carry['against'] + $awayPlayerScore;
-                    $carry['gd'] = $carry['gd'] + ($homePlayerScore - $awayPlayerScore);
-                } else {
-                    $carry['for'] = $carry['for'] + $awayPlayerScore;
-                    $carry['against'] = $carry['against'] + $homePlayerScore;
-                    $carry['gd'] = $carry['gd'] + ($awayPlayerScore - $homePlayerScore);
-                }
-
-                $carry['played']++;
-            }
-
-            return $carry;
-        }, [
-            'win' => 0,
-            'loss' => 0,
-            'draw' => 0,
-            'for' => 0,
-            'against' => 0,
-            'played' => 0,
-            'gd' => 0,
-            'points' => 0,
-            'form' => [],
-            'formPoints' => 0
-        ]);
+                return $carry;
+            },
+            [
+                'win' => 0,
+                'loss' => 0,
+                'draw' => 0,
+                'for' => 0,
+                'against' => 0,
+                'played' => 0,
+                'gd' => 0,
+                'points' => 0,
+                'form' => [],
+                'formPoints' => 0
+            ]
+        );
     }
 
     protected function calculateFurthestStage($fixtures, $playerId)

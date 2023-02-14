@@ -22,7 +22,7 @@ class FixturesController extends Controller
             $id = $args['id'];
             $currentFixtures = Fixtures::where('tournamentId', '=', $id)->get()->keyBy('id');
             $totalFixtures = $currentFixtures->count();
-            $fixturesWithScores = 0;
+            // $fixturesWithScores = 0;
             foreach ($dates as $date => $fixtures) {
                 foreach ($fixtures as $fixture) {
                     $totalFixtures++;
