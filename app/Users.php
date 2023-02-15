@@ -39,6 +39,6 @@ class Users extends Model
             'id',
             'id',
             'tournamentId'
-        );
+        )->orderByDesc('startDate');
     }
 }
