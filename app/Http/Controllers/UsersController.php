@@ -30,27 +30,27 @@ class UsersController extends Controller
                     ->orWhere('awayPlayerId', '=', $id)
                     ->with('home_player', 'away_player');
             })
-            ->first();
+            ->first()->toArray();
 
 
         // Outrights
-        $allFixtures = array_reduce($user->tournaments->toArray(), function ($carry, $tournament) {
+        $allFixtures = array_reduce($user['tournaments'], function ($carry, $tournament) {
             return array_merge($carry, $tournament['fixtures']);
         }, []);
 
         $user['outrights'] = array_merge(
             [
-                ["title" => "Seasons", "value" => count($user->tournaments)]
+                ["title" => "Seasons", "value" => count($user['tournaments'])]
             ],
             $this->getFixtureStats($allFixtures, $id)
         );
 
         // Tournament stats
-        foreach ($user->tournaments->toArray() as $key => $tournament) {
+        foreach ($user['tournaments'] as $key => $tournament) {
+
             $fixtures = $tournament['fixtures'];
-            $tournament['stats'] = $this->calculateFixtureTotals($fixtures, $id);
-            $tournament['stage'] = $this->calculateFurthestStage($fixtures, $id);
-            $user['tournaments'][$key] = $tournament;
+            $user['tournaments'][$key]['stats'] = $this->calculateFixtureTotals($fixtures, $id);
+            $user['tournaments'][$key]['stage'] = $this->calculateFurthestStage($fixtures, $id);
         }
 
         return $user;

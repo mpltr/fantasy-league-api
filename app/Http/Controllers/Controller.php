@@ -226,53 +226,51 @@ class Controller extends BaseController
             $this->filterPlayedFixtures($fixtures),
             function ($carry, $fixture)
             use ($playerId, $stages) {
-                if ($fixture['homePlayerId'] == $playerId || $fixture['awayPlayerId'] == $playerId) {
-                    if (!$stages || in_array($fixture['group'], $stages)) {
+                if (($fixture['homePlayerId'] == $playerId || $fixture['awayPlayerId'] == $playerId)
+                    && (!$stages || in_array($fixture['group'], $stages))
+                ) {
+                    $isHome = $playerId == $fixture['homePlayerId'];
+                    extract($fixture);
 
-
-                        $isHome = $playerId === $fixture['homePlayerId'];
-                        extract($fixture);
-
-                        if ($homePlayerScore > $awayPlayerScore) {
-                            if ($isHome) {
-                                $carry['win']++;
-                                $carry['points'] = $carry['points'] + 3;
-                                $carry['form'][] = 3;
-                                $carry['formPoints'] = $carry['formPoints'] + 3;
-                            } else {
-                                $carry['loss']++;
-                                $carry['form'][] = 0;
-                            }
-                        } elseif ($awayPlayerScore > $homePlayerScore) {
-                            if ($isHome) {
-                                $carry['loss']++;
-                                $carry['form'][] = 0;
-                            } else {
-                                $carry['win']++;
-                                $carry['points'] = $carry['points'] + 3;
-                                $carry['form'][] = 3;
-                                $carry['formPoints'] = $carry['formPoints'] + 3;
-                            }
-                        } else {
-                            $carry['draw']++;
-                            $carry['points']++;
-                            $carry['form'][] = 1;
-                            $carry['formPoints']++;
-                        }
-
+                    if ($homePlayerScore > $awayPlayerScore) {
                         if ($isHome) {
-                            $carry['for'] = $carry['for'] + $homePlayerScore;
-                            $carry['against'] = $carry['against'] + $awayPlayerScore;
-                            $carry['gd'] = $carry['gd'] + ($homePlayerScore - $awayPlayerScore);
+                            $carry['win']++;
+                            $carry['points'] = $carry['points'] + 3;
+                            $carry['form'][] = 3;
+                            $carry['formPoints'] = $carry['formPoints'] + 3;
                         } else {
-                            $carry['for'] = $carry['for'] + $awayPlayerScore;
-                            $carry['against'] = $carry['against'] + $homePlayerScore;
-                            $carry['gd'] = $carry['gd'] + ($awayPlayerScore - $homePlayerScore);
+                            $carry['loss']++;
+                            $carry['form'][] = 0;
                         }
-
-
-                        $carry['played']++;
+                    } elseif ($awayPlayerScore > $homePlayerScore) {
+                        if ($isHome) {
+                            $carry['loss']++;
+                            $carry['form'][] = 0;
+                        } else {
+                            $carry['win']++;
+                            $carry['points'] = $carry['points'] + 3;
+                            $carry['form'][] = 3;
+                            $carry['formPoints'] = $carry['formPoints'] + 3;
+                        }
+                    } else {
+                        $carry['draw']++;
+                        $carry['points']++;
+                        $carry['form'][] = 1;
+                        $carry['formPoints']++;
                     }
+
+                    if ($isHome) {
+                        $carry['for'] = $carry['for'] + $homePlayerScore;
+                        $carry['against'] = $carry['against'] + $awayPlayerScore;
+                        $carry['gd'] = $carry['gd'] + ($homePlayerScore - $awayPlayerScore);
+                    } else {
+                        $carry['for'] = $carry['for'] + $awayPlayerScore;
+                        $carry['against'] = $carry['against'] + $homePlayerScore;
+                        $carry['gd'] = $carry['gd'] + ($awayPlayerScore - $homePlayerScore);
+                    }
+
+
+                    $carry['played']++;
                 }
 
                 return $carry;
