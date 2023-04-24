@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Korridor\LaravelHasManyMerged\HasManyMerged;
 use Korridor\LaravelHasManyMerged\HasManyMergedRelation;
 
 class Players extends Model
@@ -32,4 +31,3 @@ class Players extends Model
         return $this->belongsToMany('App\Tournaments', 'tournamentId');
     }
 }
-
