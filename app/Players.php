@@ -32,4 +32,3 @@ class Players extends Model
         return $this->belongsToMany('App\Tournaments', 'tournamentId');
     }
 }
-

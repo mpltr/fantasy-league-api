@@ -30,9 +30,9 @@ class MigrateController extends Controller
 
         return $body;
     }
-    
+
     public function tournaments(Request $request)
-    { 
+    {
         $data = $this->fetchMigrationData("$this->host/tournament");
         $result = Tournaments::insert($data);
 
@@ -47,7 +47,7 @@ class MigrateController extends Controller
         return response($result);
     }
 
-    public function fixtures (Request $request)
+    public function fixtures(Request $request)
     {
         $data = $this->fetchMigrationData("$this->host/fixtures");
         $result = Fixtures::insert($data);

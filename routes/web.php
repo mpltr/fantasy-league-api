@@ -44,10 +44,10 @@ $router->get('/users', 'UsersController@index');
 $router->get('/users/{id}', 'UsersController@show');
 
 // migrate
-$router->get('/migrate/tournaments', 'MigrateController@tournaments');
-$router->get('/migrate/players', 'MigrateController@players');
-$router->get('/migrate/fixtures', 'MigrateController@fixtures');
-$router->get('/migrate/messages', 'MigrateController@messages');
+// $router->get('/migrate/tournaments', 'MigrateController@tournaments');
+// $router->get('/migrate/players', 'MigrateController@players');
+// $router->get('/migrate/fixtures', 'MigrateController@fixtures');
+// $router->get('/migrate/messages', 'MigrateController@messages');
 
 $router->get('/version', function () {
     return response()->json([
