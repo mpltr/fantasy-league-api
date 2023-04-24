@@ -11,7 +11,7 @@
     ],
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "true",
+        "APP_DEBUG": "false",
         "APP_URL": "https://fantasy-league-api.vercel.app",
 
         "APP_CONFIG_CACHE": "/tmp/config.php",
