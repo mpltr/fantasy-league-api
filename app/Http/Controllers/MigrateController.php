@@ -15,53 +15,53 @@ use App\Messages;
 
 class MigrateController extends Controller
 {
-    public function __contstruct()
-    {
-        //
-    }
+    // public function __contstruct()
+    // {
+    //     //
+    // }
 
-    private $host = 'https://mpltr.helioho.st';
+    // private $host = 'https://mpltr.helioho.st';
 
-    private function fetchMigrationData($url)
-    {
-        $client = new \GuzzleHttp\Client();
-        $response = $client->request("GET", $url);
-        $body = json_decode($response->getBody(), true);
+    // private function fetchMigrationData($url)
+    // {
+    //     $client = new \GuzzleHttp\Client();
+    //     $response = $client->request("GET", $url);
+    //     $body = json_decode($response->getBody(), true);
 
-        return $body;
-    }
-    
-    public function tournaments(Request $request)
-    { 
-        $data = $this->fetchMigrationData("$this->host/tournament");
-        $result = Tournaments::insert($data);
+    //     return $body;
+    // }
 
-        return response($result);
-    }
+    // public function tournaments(Request $request)
+    // { 
+    //     $data = $this->fetchMigrationData("$this->host/tournament");
+    //     $result = Tournaments::insert($data);
 
-    public function players(Request $request)
-    {
-        $data = $this->fetchMigrationData("$this->host/player");
-        $result = Players::insert($data);
+    //     return response($result);
+    // }
 
-        return response($result);
-    }
+    // public function players(Request $request)
+    // {
+    //     $data = $this->fetchMigrationData("$this->host/player");
+    //     $result = Players::insert($data);
 
-    public function fixtures (Request $request)
-    {
-        $data = $this->fetchMigrationData("$this->host/fixtures");
-        $result = Fixtures::insert($data);
+    //     return response($result);
+    // }
 
-        return response($result);
-    }
+    // public function fixtures (Request $request)
+    // {
+    //     $data = $this->fetchMigrationData("$this->host/fixtures");
+    //     $result = Fixtures::insert($data);
 
-    public function messages(Request $request)
-    {
-        $data = $this->fetchMigrationData("$this->host/message");
-        $result = Messages::insert($data);
+    //     return response($result);
+    // }
 
-        return response($result);
-    }
+    // public function messages(Request $request)
+    // {
+    //     $data = $this->fetchMigrationData("$this->host/message");
+    //     $result = Messages::insert($data);
+
+    //     return response($result);
+    // }
 
     // Not sure users is even used!
     // public function users(Request $request) 
